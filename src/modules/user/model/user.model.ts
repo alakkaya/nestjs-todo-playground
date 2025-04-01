@@ -1,4 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { hashSync } from 'bcryptjs';
 import { Document, Schema as MongooseSchema, Types } from 'mongoose';
 import { User } from 'src/core/interface/mongo-model';
 
@@ -14,7 +15,7 @@ export class UserModel implements User {
   public _id: string;
 
   @Prop({ type: String, required: true })
-  fullName: string;
+  fullname: string;
 
   @Prop({ type: String, unique: true, required: true })
   nickname: string;
@@ -30,3 +31,13 @@ export class UserModel implements User {
 }
 
 export const UserSchema = SchemaFactory.createForClass(UserModel);
+
+export function preSave(next: any) {
+  if (!this.isModified('password')) {
+    return next();
+  }
+  this.password = hashSync(this.password, 12); // salt rounds: 12
+  next();
+}
+
+UserSchema.pre('save', preSave);
