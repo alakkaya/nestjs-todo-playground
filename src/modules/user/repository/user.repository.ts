@@ -12,8 +12,29 @@ export class UserRepository {
     private readonly userModel: Model<UserDocument>,
   ) {}
 
-  async create(createUserDTO: CreateUserDto): Promise<User> {
-    const newUser = new this.userModel(createUserDTO);
+  async create(createUserDto: CreateUserDto): Promise<User> {
+    const newUser = new this.userModel(...createUserDto);
     return newUser.save();
+  }
+
+  async findById(_id: string): Promise<Omit<User, 'password'>> {
+    return this.userModel.findById(_id).lean().exec();
+  }
+
+  findByNickname(nickname: string): Promise<Omit<User, 'password'>> {
+    return this.userModel
+      .findOne({
+        nickname,
+      })
+      .lean()
+      .exec();
+  }
+
+  async findByNicknameForAuth(nickname: string): Promise<User | null> {
+    return this.userModel
+      .findOne({ nickname })
+      .select('+password') // select('+password') to include the password field for authentication
+      .lean()
+      .exec();
   }
 }
