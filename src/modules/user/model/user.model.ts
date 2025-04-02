@@ -1,7 +1,13 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import {
+  AsyncModelFactory,
+  Prop,
+  Schema,
+  SchemaFactory,
+} from '@nestjs/mongoose';
 import { hashSync } from 'bcryptjs';
 import { Document, Schema as MongooseSchema, Types } from 'mongoose';
-import { User } from 'src/core/interface/mongo-model';
+import { leanObjectId, leanObjectsId, preSave } from 'src/core/helper';
+import { CollectionName, User } from 'src/core/interface/mongo-model';
 
 export type UserDocument = UserModel & Document;
 
@@ -10,7 +16,7 @@ export class UserModel implements User {
   @Prop({
     type: MongooseSchema.Types.ObjectId,
     required: false,
-    default: Types.ObjectId,
+    default: () => new Types.ObjectId(),
   })
   public _id: string;
 
@@ -32,12 +38,17 @@ export class UserModel implements User {
 
 export const UserSchema = SchemaFactory.createForClass(UserModel);
 
-export function preSave(next: any) {
-  if (!this.isModified('password')) {
-    return next();
-  }
-  this.password = hashSync(this.password, 12); // salt rounds: 12
-  next();
-}
-
 UserSchema.pre('save', preSave);
+
+export const UserFactory: AsyncModelFactory = {
+  collection: CollectionName.USER,
+  name: UserModel.name,
+  useFactory: () => {
+    UserSchema.pre('save', preSave);
+    UserSchema.post('find', leanObjectsId);
+    UserSchema.post('findOne', leanObjectId);
+    UserSchema.post('findOneAndUpdate', preSave);
+    UserSchema.post('findOneAndUpdate', leanObjectId);
+    return UserSchema;
+  },
+};
