@@ -13,21 +13,31 @@ export class UserRepository {
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
-    const newUser = new this.userModel(...createUserDto);
+    const newUser = new this.userModel({ ...createUserDto });
     return newUser.save();
   }
 
-  async findById(_id: string): Promise<Omit<User, 'password'>> {
-    return this.userModel.findById(_id).lean().exec();
+  async findById(_id: string): Promise<Omit<User, 'password'> | null> {
+    const user = await this.userModel.findById(_id).lean().exec();
+    if (user) {
+      return user;
+    }
+    return null;
   }
 
-  findByNickname(nickname: string): Promise<Omit<User, 'password'>> {
-    return this.userModel
+  async findByNickname(
+    nickname: string,
+  ): Promise<Omit<User, 'password'> | null> {
+    const user = await this.userModel
       .findOne({
         nickname,
       })
       .lean()
       .exec();
+    if (user) {
+      return user;
+    }
+    return null;
   }
 
   async findByNicknameForAuth(nickname: string): Promise<User | null> {
