@@ -38,8 +38,6 @@ export class UserModel implements User {
 
 export const UserSchema = SchemaFactory.createForClass(UserModel);
 
-UserSchema.pre('save', preSave);
-
 export const UserFactory: AsyncModelFactory = {
   collection: CollectionName.USER,
   name: UserModel.name,

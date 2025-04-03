@@ -1,0 +1,11 @@
+### create user
+POST http://localhost:3000/user
+Content-Type: application/json
+
+{
+    "nickname": "ali3",
+    "fullname":"ali akkaya",
+    "password":"a1a2a3a4"
+}
+
+
