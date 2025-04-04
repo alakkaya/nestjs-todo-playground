@@ -19,26 +19,13 @@ export class UserRepository {
   }
 
   async findById(_id: string): Promise<Omit<User, 'password'> | null> {
-    const user = await this.userModel.findById(_id).lean().exec();
-    if (user) {
-      return user;
-    }
-    return null;
+    return this.userModel.findById(_id).lean().exec();
   }
 
   async findByNickname(
     nickname: string,
   ): Promise<Omit<User, 'password'> | null> {
-    const user = await this.userModel
-      .findOne({
-        nickname,
-      })
-      .lean()
-      .exec();
-    if (user) {
-      return user;
-    }
-    return null;
+    return this.userModel.findOne({ nickname }).lean().exec();
   }
 
   async findByNicknameForAuth(nickname: string): Promise<User | null> {
