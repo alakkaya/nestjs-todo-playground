@@ -14,7 +14,7 @@ export class UserRepository {
 
   async create(createUserDto: CreateUserDto): Promise<UserCreateAck> {
     const newUser = new this.userModel({ ...createUserDto });
-    newUser.save();
+    await newUser.save();
     return { id: newUser._id.toString() };
   }
 
