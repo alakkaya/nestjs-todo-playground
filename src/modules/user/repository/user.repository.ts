@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { UserDocument, UserModel } from '../model/user.model';
 import { Model } from 'mongoose';
-import { CreateUserDto, UserCreateAck } from '../dto';
+import { CreateUserDto, CreateUserAck } from '../dto';
 import { User } from 'src/core/interface/mongo-model';
 
 @Injectable()
@@ -12,7 +12,7 @@ export class UserRepository {
     private readonly userModel: Model<UserDocument>,
   ) {}
 
-  async create(createUserDto: CreateUserDto): Promise<UserCreateAck> {
+  async create(createUserDto: CreateUserDto): Promise<CreateUserAck> {
     const newUser = new this.userModel({ ...createUserDto });
     await newUser.save();
     return { id: newUser._id.toString() };

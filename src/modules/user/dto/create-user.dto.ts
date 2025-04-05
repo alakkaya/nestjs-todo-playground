@@ -17,6 +17,6 @@ export class CreateUserDto {
   password: string;
 }
 
-export class UserCreateAck {
+export class CreateUserAck {
   id: string;
 }
