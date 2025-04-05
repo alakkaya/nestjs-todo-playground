@@ -1,12 +1,12 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { UserRepository } from '../repository';
-import { CreateUserDto, UserCreationResponseDto } from '../dto';
+import { CreateUserDto, CreateUserAck } from '../dto';
 
 @Injectable()
 export class UserService {
   constructor(private readonly userRepository: UserRepository) {}
 
-  async create(user: CreateUserDto): Promise<UserCreationResponseDto> {
+  async create(user: CreateUserDto): Promise<CreateUserAck> {
     const existingUser = await this.userRepository.findByNickname(
       user.nickname,
     );
