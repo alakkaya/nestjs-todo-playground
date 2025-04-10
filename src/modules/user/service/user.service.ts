@@ -1,6 +1,7 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { UserRepository } from '../repository';
 import { CreateUserDto, CreateUserAck } from '../dto';
+import { NicknameAlreadyTakenException } from 'src/core/error';
 
 @Injectable()
 export class UserService {
@@ -11,7 +12,7 @@ export class UserService {
       user.nickname,
     );
     if (existingUser) {
-      throw new ConflictException('Bu kullanıcı adı zaten kullanılıyor');
+      throw new NicknameAlreadyTakenException();
     }
     return this.userRepository.create(user);
   }

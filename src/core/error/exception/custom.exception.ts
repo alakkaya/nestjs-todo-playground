@@ -1,9 +1,9 @@
 export class CustomException extends Error {
-  message: string;
+  message: string; // messsage for the developers
   httpStatusCode: number;
-  errorCode: number;
+  errorCode: number; // specific error code for the error.
   isCustomError = true;
-  errorMessage: string;
+  errorMessage: string; // errorMessage for the last users
 
   constructor(
     message: string,
