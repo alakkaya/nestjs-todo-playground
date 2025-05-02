@@ -20,7 +20,7 @@ export class AllExceptionFilter implements ExceptionFilter {
         errorCode: exception.errorCode,
         errorMessage: exception.message,
         timestamp: new Date().toISOString(),
-        // may be add "requestId" for tracking based on request
+        // may be add "requestId" for trackging based on request
       },
       result: exception,
     });

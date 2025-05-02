@@ -1,0 +1,31 @@
+services:
+  todo-playground-server:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: todo-playground-server
+    container_name: todo-playground-server
+    # restart: always, on-failure, unless-stopped
+    ports:
+      - '3000:3000'
+    env_file:
+      - ../.env
+    volumes:
+      - ./../src:/usr/src/app/src
+      - ./../.env:/usr/src/app/env
+    depends_on:
+      - mongo
+    networks:
+      - nestjs-todo-network
+
+  mongo:
+    image: mongo
+    container_name: todo-playground-mongo
+    restart: always
+    ports:
+      - '27016:27017'
+    networks:
+      - nestjs-todo-network
+
+networks:
+  nestjs-todo-network:
