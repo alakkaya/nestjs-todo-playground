@@ -12,5 +12,5 @@ RUN npm run build
 
 EXPOSE 3000
 
-CMD [ "npm", "run","start:prod" ]
+CMD [ "npm", "run","start:dev" ]
 #run vs cmd: run komutundaki docker image proje halindeyken çalışır. cmd ise image çalışıyorken çalışır.

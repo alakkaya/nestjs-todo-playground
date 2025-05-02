@@ -10,6 +10,9 @@ services:
       - '3000:3000'
     env_file:
       - ../.env
+    volumes:
+      - ./../src:/usr/src/app/src
+      - ./../.env:/usr/src/app/env
     depends_on:
       - mongo
     networks:
@@ -18,15 +21,11 @@ services:
   mongo:
     image: mongo
     container_name: todo-playground-mongo
+    restart: always
     ports:
       - '27016:27017'
-    volumes:
-      - mongo-data:/data/db
     networks:
       - nestjs-todo-network
-
-volumes:
-  mongo-data:
 
 networks:
   nestjs-todo-network:
