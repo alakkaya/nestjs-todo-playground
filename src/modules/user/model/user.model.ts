@@ -6,9 +6,8 @@ import {
 } from '@nestjs/mongoose';
 import { hashSync } from 'bcryptjs';
 import { Document, Schema as MongooseSchema, Types } from 'mongoose';
-import { leanObjectId, leanObjectsId, preSave } from 'src/core/helper';
-import { CollectionName, User } from 'src/core/interface/mongo-model';
-
+import { leanObjectId, leanObjectsId, preSave } from '../../../core/helper';
+import { CollectionName, User } from '../../../core/interface/mongo-model';
 export type UserDocument = UserModel & Document;
 
 @Schema({ timestamps: true })
