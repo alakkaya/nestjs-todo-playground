@@ -45,8 +45,27 @@ it('should throw error if nickname already exists', async () => {
   const response = await request(testConfig.baseUri)
     .post('/user')
     .send(dto)
-    .expect(500); // Expect a 500 error status code
+    .expect(400);
 
   // Now check the error response
   expect(response.body.meta.errorCode).toBe(ErrorCode.NICKNAME_ALREADY_TAKEN);
+});
+
+it('should throw 400 error if required fields are missing (DTO validation)', async () => {
+  // fullname eksik
+  const missingFullname = {
+    nickname: 'test-nickname',
+    password: 'password123',
+  };
+
+  const response = await request(testConfig.baseUri)
+    .post('/user')
+    .send(missingFullname)
+    .expect(400);
+
+  expect(response.body.meta.status).toBe(400);
+  expect(response.body.meta.errorMessage).toEqual(
+    expect.arrayContaining([expect.stringContaining('fullname')]),
+  );
+  expect(response.body.result.statusCode).toBe(400);
 });
