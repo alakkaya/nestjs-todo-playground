@@ -5,6 +5,7 @@ import { configDotenv } from 'dotenv';
 import { UserService } from './modules/user/service';
 import { UserRepository } from './modules/user/repository';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       inject: [ConfigService],
     }),
     UserModule,
+    AuthModule,
   ],
   controllers: [],
   providers: [],
