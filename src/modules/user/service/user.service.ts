@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { UserRepository } from '../repository';
 import { CreateUserDto, CreateUserAck } from '../dto';
-import { NicknameAlreadyTakenException } from 'src/core/error';
+import { NicknameAlreadyTakenException } from '../../../core/error';
 
 @Injectable()
 export class UserService {
@@ -11,9 +11,11 @@ export class UserService {
     const existingUser = await this.userRepository.findByNickname(
       user.nickname,
     );
+
     if (existingUser) {
       throw new NicknameAlreadyTakenException();
     }
+
     return this.userRepository.create(user);
   }
 }
