@@ -15,6 +15,7 @@ services:
       - ./../.env:/usr/src/app/env
     depends_on:
       - mongo
+      - redis-db
     networks:
       - nestjs-todo-network
 
@@ -24,6 +25,13 @@ services:
     restart: always
     ports:
       - '27016:27017'
+    networks:
+      - nestjs-todo-network
+
+  redis-db:
+    image: redis
+    ports:
+      - '6378:6379'
     networks:
       - nestjs-todo-network
 
