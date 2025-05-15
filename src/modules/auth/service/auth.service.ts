@@ -6,6 +6,7 @@ import { UnauthorizedException } from 'src/core/error';
 import * as bcrypt from 'bcryptjs';
 import { ConfigService } from '@nestjs/config';
 import { User } from 'src/core/interface/mongo-model';
+import { RedisService } from 'src/core/cache/redis.service';
 
 @Injectable()
 export class AuthService {
@@ -13,6 +14,7 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly redisService: RedisService,
   ) {}
 
   async getUserByToken(token: string): Promise<User> {
@@ -60,6 +62,9 @@ export class AuthService {
       secret: this.configService.get<string>('JWT_SECRET_REFRESH'),
       expiresIn: this.configService.get<string>('JWT_EXPIRATION_REFRESH'),
     });
+
+    // Save refresh token to Redis
+    await this.redisService.saveRefreshToken(user._id, refreshToken);
 
     return {
       accessToken,
