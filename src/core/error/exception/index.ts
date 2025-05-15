@@ -7,3 +7,4 @@ export * from './not-found.exception';
 export * from './race-condition.exception';
 export * from './too-many-request.exception';
 export * from './unauthorized.exception';
+export * from './invalid-refresh-token.exception';
