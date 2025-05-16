@@ -71,4 +71,8 @@ export class AuthService {
       refreshToken,
     };
   }
+
+  async signOut(userId: string): Promise<void> {
+    await this.redisService.deleteRefreshToken(userId);
+  }
 }
