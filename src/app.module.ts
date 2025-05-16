@@ -5,6 +5,8 @@ import { configDotenv } from 'dotenv';
 import { UserService } from './modules/user/service';
 import { UserRepository } from './modules/user/repository';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { AuthModule } from './modules/auth/auth.module';
+import { RedisModule } from '@nestjs-modules/ioredis';
 
 @Module({
   imports: [
@@ -18,8 +20,18 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       }),
       inject: [ConfigService],
     }),
+    RedisModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        type: 'single',
+        url: `redis://${configService.get('REDIS_HOST')}:${configService.get('REDIS_PORT')}`,
+      }),
+      inject: [ConfigService],
+    }),
     UserModule,
+    AuthModule,
   ],
+
   controllers: [],
   providers: [],
 })

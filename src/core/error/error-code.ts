@@ -9,6 +9,7 @@ export enum ErrorCode {
 
   // 401
   UNAUTHORIZED = 40100,
+  INVALID_REFRESH_TOKEN = 40101,
 
   //403
   FORBIDDEN = 40300,
