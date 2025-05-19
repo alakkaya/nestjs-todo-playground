@@ -1,10 +1,8 @@
-import * as request from 'supertest';
 import { CreateUserDto } from '../../src/modules/user/dto';
 import { UserMongoModel } from '../common/db/mongo.helper';
 import * as bcrypt from 'bcryptjs';
-import { testConfig } from '../test-config';
 import { ErrorCode } from '../../src/core/error/error-code';
-import { createTestUser } from 'test/common';
+import { createTestUser } from '../common';
 
 it('should create a user', async () => {
   const dto: CreateUserDto = {
@@ -36,7 +34,9 @@ it('should throw error if nickname already exists', async () => {
     nickname: Math.random().toString(36).slice(2, 16),
     password: 'password123',
   };
-
+  // Create the first user
+  await createTestUser(dto);
+  // Try to create a second user with the same nickname
   const response = await createTestUser(dto);
 
   expect(response.status).toBe(400);
