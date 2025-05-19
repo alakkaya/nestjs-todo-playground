@@ -1,11 +1,16 @@
-import { closeMongoDb, connectMongoDb } from './common';
+import {
+  closeMongoDb,
+  closeRedis,
+  connectMongoDb,
+  connectRedis,
+} from './common';
 import mongoose from 'mongoose';
 
 // Track test users for cleanup
 export const testUsers: string[] = [];
 
 beforeEach(async () => {
-  await connectMongoDb();
+  await Promise.all([connectRedis(), connectMongoDb()]);
 });
 
 // Clean up and close connection
@@ -22,5 +27,5 @@ afterAll(async () => {
     testUsers.length = 0;
   }
 
-  await closeMongoDb();
+  await Promise.all([closeMongoDb(), closeRedis()]);
 });
