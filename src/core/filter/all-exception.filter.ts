@@ -46,7 +46,7 @@ export class AllExceptionFilter implements ExceptionFilter {
         errorCode: exception.errorCode,
         errorMessage: exception.message,
         timestamp: new Date().toISOString(),
-        requestId: request.reqId,
+        requestId: request.requestId,
       },
       result: exception,
     });
