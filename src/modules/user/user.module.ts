@@ -9,5 +9,6 @@ import { UserRepository } from './repository';
   imports: [MongooseModule.forFeatureAsync([UserFactory])],
   controllers: [UserController],
   providers: [UserService, UserRepository],
+  exports: [UserService],
 })
 export class UserModule {}

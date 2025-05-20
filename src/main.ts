@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { configDotenv } from 'dotenv';
 import { ValidationPipe } from '@nestjs/common';
 import { AllExceptionFilter } from './core/filter/all-exception.filter';
+import { TransformInterceptor } from './core/interceptor/transform.inceptor';
 
 configDotenv();
 
@@ -17,6 +18,7 @@ async function bootstrap() {
     }),
   );
   app.useGlobalFilters(new AllExceptionFilter());
+  app.useGlobalInterceptors(new TransformInterceptor());
   await app.listen(process.env.PORT ?? 3000);
   return app;
 }
