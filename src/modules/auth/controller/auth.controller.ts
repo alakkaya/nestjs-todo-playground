@@ -2,6 +2,8 @@ import { Body, Controller, Post, Request, UseGuards } from '@nestjs/common';
 import { AuthService } from '../service';
 import { SignInAck, SignInDto } from '../dto';
 import { AuthGuard } from 'src/core/guard/auth.guard';
+import { ReqUser } from 'src/core/decorator';
+import { User } from 'src/core/interface/mongo-model';
 
 @Controller('auth')
 export class AuthController {
@@ -14,8 +16,7 @@ export class AuthController {
 
   @Post('sign-out')
   @UseGuards(AuthGuard)
-  async signOut(@Request() req): Promise<void> {
-    //With AuthGuard, req.user is already populated with the user data
-    return this.authService.signOut(req.user._id);
+  async signOut(@ReqUser() user: User): Promise<void> {
+    return this.authService.signOut(user._id);
   }
 }
