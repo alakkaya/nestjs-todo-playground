@@ -1,6 +1,6 @@
 import { Body, Controller, Post, Request, UseGuards } from '@nestjs/common';
 import { AuthService } from '../service';
-import { SignInAck, SignInDto } from '../dto';
+import { RefreshTokenAck, RefreshTokenDto, SignInAck, SignInDto } from '../dto';
 import { AuthGuard } from 'src/core/guard/auth.guard';
 import { ReqUser } from 'src/core/decorator';
 import { User } from 'src/core/interface/mongo-model';
@@ -18,5 +18,12 @@ export class AuthController {
   @UseGuards(AuthGuard)
   async signOut(@ReqUser() user: User): Promise<void> {
     return this.authService.signOut(user._id);
+  }
+
+  @Post('refresh-token')
+  async refreshToken(
+    @Body() refreshTokenDto: RefreshTokenDto,
+  ): Promise<RefreshTokenAck> {
+    return this.authService.refreshToken(refreshTokenDto.refreshToken);
   }
 }

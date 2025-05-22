@@ -13,6 +13,9 @@ export class SignInDto {
 }
 
 export class SignInAck {
+  @IsString()
   accessToken: string;
+
+  @IsString()
   refreshToken: string;
 }

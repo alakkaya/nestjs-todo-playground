@@ -1,8 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from 'src/modules/user/service';
-import { SignInAck, SignInDto } from '../dto';
-import { UnauthorizedException } from 'src/core/error';
+import { RefreshTokenAck, SignInAck, SignInDto } from '../dto';
+import {
+  InvalidRefreshTokenException,
+  UnauthorizedException,
+} from 'src/core/error';
 import * as bcrypt from 'bcryptjs';
 import { ConfigService } from '@nestjs/config';
 import { User } from 'src/core/interface/mongo-model';
@@ -74,5 +77,49 @@ export class AuthService {
 
   async signOut(userId: string): Promise<void> {
     await this.redisService.deleteRefreshToken(userId);
+  }
+
+  async refreshToken(refreshToken: string): Promise<RefreshTokenAck> {
+    // Verify the refresh token
+    const payload = await this.jwtService.verifyAsync(refreshToken, {
+      secret: this.configService.get<string>('JWT_SECRET_REFRESH'),
+    });
+
+    // Check if the refresh token is in Redis
+    const isTokenInRedis = await this.redisService.getRefreshToken(payload._id);
+
+    if (!isTokenInRedis || isTokenInRedis !== refreshToken) {
+      throw new InvalidRefreshTokenException();
+    }
+
+    // Find the user by nickname
+    const user = await this.userService.findByNickname(payload.nickname);
+
+    if (!user) {
+      throw new UnauthorizedException();
+    }
+
+    const newPayload = {
+      _id: user._id,
+      nickname: user.nickname,
+    };
+
+    const newAccessToken = await this.jwtService.signAsync(newPayload, {
+      secret: this.configService.get<string>('JWT_SECRET_ACCESS'),
+      expiresIn: this.configService.get<string>('JWT_EXPIRATION_ACCESS'),
+    });
+
+    const newRefreshToken = await this.jwtService.signAsync(newPayload, {
+      secret: this.configService.get<string>('JWT_SECRET_REFRESH'),
+      expiresIn: this.configService.get<string>('JWT_EXPIRATION_REFRESH'),
+    });
+
+    // Save the new refresh token to Redis
+    await this.redisService.saveRefreshToken(user._id, newRefreshToken);
+
+    return {
+      newAccessToken,
+      newRefreshToken,
+    };
   }
 }
