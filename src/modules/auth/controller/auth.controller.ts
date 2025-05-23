@@ -7,7 +7,13 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from '../service';
-import { RefreshTokenAck, RefreshTokenDto, SignInAck, SignInDto } from '../dto';
+import {
+  MeAck,
+  RefreshTokenAck,
+  RefreshTokenDto,
+  SignInAck,
+  SignInDto,
+} from '../dto';
 import { AuthGuard } from 'src/core/guard/auth.guard';
 import { ReqUser } from 'src/core/decorator';
 import { User } from 'src/core/interface/mongo-model';
@@ -36,8 +42,13 @@ export class AuthController {
 
   @Get('me')
   @UseGuards(AuthGuard)
-  async me(@ReqUser() user: User): Promise<Omit<User, 'password'>> {
-    const { password, ...userWithoutPassword } = user;
-    return userWithoutPassword;
+  async me(@ReqUser() user: User): Promise<MeAck> {
+    return {
+      _id: user._id,
+      fullname: user.fullname,
+      nickname: user.nickname,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
   }
 }
