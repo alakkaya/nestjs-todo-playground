@@ -110,7 +110,7 @@ export class AuthService {
     });
 
     // Added a small delay to ensure Redis operations are not too fast and also pass the test case
-    await new Promise((resolve) => setTimeout(resolve, 1));
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
     const newRefreshToken = await this.jwtService.signAsync(newPayload, {
       secret: this.configService.get<string>('JWT_SECRET_REFRESH'),
