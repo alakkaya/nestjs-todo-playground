@@ -3,6 +3,7 @@ import {
   closeRedis,
   connectMongoDb,
   connectRedis,
+  resetMongoDb,
 } from './common';
 import mongoose from 'mongoose';
 
@@ -13,19 +14,13 @@ beforeEach(async () => {
   await Promise.all([connectRedis(), connectMongoDb()]);
 });
 
+afterEach(async () => {
+  // Her test sonrası veritabanını temizle
+  await resetMongoDb();
+  testUsers.length = 0; // Test kullanıcıları listesini temizle
+});
+
 // Clean up and close connection
 afterAll(async () => {
-  // Clean up specific test users
-  if (testUsers.length > 0) {
-    await Promise.all(
-      testUsers.map((userId) =>
-        mongoose.connection
-          .collection('user')
-          .deleteOne({ _id: new mongoose.Types.ObjectId(userId) }),
-      ),
-    );
-    testUsers.length = 0;
-  }
-
   await Promise.all([closeMongoDb(), closeRedis()]);
 });
