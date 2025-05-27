@@ -24,3 +24,18 @@ export async function getAuthTokens(
     refreshToken: response.body.result.refreshToken,
   };
 }
+
+export async function createExpiredRefreshToken(
+  validRefreshToken: string,
+): Promise<string> {
+  const jwt = require('jsonwebtoken');
+  const decodedToken = jwt.decode(validRefreshToken);
+
+  return jwt.sign(
+    {
+      ...decodedToken,
+      exp: Math.floor(Date.now() / 1000) - 1, // expired 1 second ago
+    },
+    process.env.JWT_SECRET_REFRESH || 'your_jwt_refresh_secret',
+  );
+}
