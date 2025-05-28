@@ -13,7 +13,12 @@ export const connectMongoDb = async (): Promise<void> => {
 };
 
 export const resetMongoDb = async (): Promise<void> => {
-  await Promise.all([mongoDb.collection('user').deleteMany({})]);
+  // Tüm koleksiyonları temizle
+  const collections = mongoose.connection.collections;
+
+  await Promise.all(
+    Object.values(collections).map((collection) => collection.deleteMany({})),
+  );
 };
 
 export const closeMongoDb = async (): Promise<void> => {
@@ -21,5 +26,5 @@ export const closeMongoDb = async (): Promise<void> => {
 };
 
 export const UserMongoModel = <Model<UserModel>>(
-  mongoDb.model('user', UserSchema, 'user')
+  (mongoose.models.UserModel || mongoose.model('UserModel', UserSchema, 'user'))
 );
