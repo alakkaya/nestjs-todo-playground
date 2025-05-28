@@ -10,13 +10,14 @@ import * as bcrypt from 'bcryptjs';
 import { ConfigService } from '@nestjs/config';
 import { User } from 'src/core/interface/mongo-model';
 import { RedisService } from 'src/core/cache/redis.service';
+import { Environment } from 'src/core/interface';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
-    private readonly configService: ConfigService,
+    private readonly configService: ConfigService<Environment>,
     private readonly redisService: RedisService,
   ) {}
 
