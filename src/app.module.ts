@@ -7,6 +7,7 @@ import { UserRepository } from './modules/user/repository';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from './modules/auth/auth.module';
 import { RedisModule } from '@nestjs-modules/ioredis';
+import { Environment } from './core/interface';
 
 @Module({
   imports: [
@@ -15,14 +16,14 @@ import { RedisModule } from '@nestjs-modules/ioredis';
     }),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
+      useFactory: async (configService: ConfigService<Environment>) => ({
         uri: configService.get<string>('MONGODB_URI'),
       }),
       inject: [ConfigService],
     }),
     RedisModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
+      useFactory: async (configService: ConfigService<Environment>) => ({
         type: 'single',
         url: `redis://${configService.get('REDIS_HOST')}:${configService.get('REDIS_PORT')}`,
       }),
