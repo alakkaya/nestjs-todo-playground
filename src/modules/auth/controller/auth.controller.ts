@@ -3,8 +3,8 @@ import {
   Controller,
   Get,
   Post,
-  Request,
   UseGuards,
+  HttpCode,
 } from '@nestjs/common';
 import { AuthService } from '../service';
 import {
@@ -15,14 +15,9 @@ import {
   SignInDto,
 } from '../dto';
 import { AuthGuard } from 'src/core/guard/auth.guard';
-import { ReqUser } from 'src/core/decorator';
+import { ApiResponseSchema, ReqUser } from 'src/core/decorator';
 import { User } from 'src/core/interface/mongo-model';
-import {
-  ApiBearerAuth,
-  ApiOperation,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -31,10 +26,10 @@ export class AuthController {
 
   @Post('sign-in')
   @ApiOperation({ summary: 'Sign in a user' })
-  @ApiResponse({
+  @ApiResponseSchema({
+    model: SignInAck,
     status: 201,
-    description: 'User signed in successfully.',
-    type: SignInAck,
+    description: 'User signed in successfully',
   })
   async signIn(@Body() signInDto: SignInDto): Promise<SignInAck> {
     return this.authService.signIn(signInDto);
@@ -44,9 +39,10 @@ export class AuthController {
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Sign out a user' })
-  @ApiResponse({
+  @HttpCode(201)
+  @ApiResponseSchema({
     status: 201,
-    description: 'User signed out successfully.',
+    description: 'User signed out successfully',
   })
   async signOut(@ReqUser() user: User): Promise<void> {
     return this.authService.signOut(user._id);
@@ -54,10 +50,10 @@ export class AuthController {
 
   @Post('refresh-token')
   @ApiOperation({ summary: 'Refresh access token using refresh token' })
-  @ApiResponse({
+  @ApiResponseSchema({
+    model: RefreshTokenAck,
     status: 201,
-    description: 'Access token refreshed successfully.',
-    type: RefreshTokenAck,
+    description: 'Access token refreshed successfully',
   })
   async refreshToken(
     @Body() refreshTokenDto: RefreshTokenDto,
@@ -69,10 +65,10 @@ export class AuthController {
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get current user information' })
-  @ApiResponse({
+  @ApiResponseSchema({
+    model: MeAck,
     status: 200,
-    description: 'Current user information retrieved successfully.',
-    type: MeAck,
+    description: 'Current user information',
   })
   async me(@ReqUser() user: User): Promise<MeAck> {
     return {
