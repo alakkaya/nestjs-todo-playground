@@ -15,9 +15,13 @@ import {
   SignInDto,
 } from '../dto';
 import { AuthGuard } from 'src/core/guard/auth.guard';
-import { ApiResponseSchema, ReqUser } from 'src/core/decorator';
+import { ApiException, ApiResponseSchema, ReqUser } from 'src/core/decorator';
 import { User } from 'src/core/interface/mongo-model';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  InvalidRefreshTokenException,
+  UnauthorizedException,
+} from 'src/core/error';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -26,6 +30,7 @@ export class AuthController {
 
   @Post('sign-in')
   @ApiOperation({ summary: 'Sign in a user' })
+  @ApiException(UnauthorizedException)
   @ApiResponseSchema({
     model: SignInAck,
     status: 201,
@@ -50,6 +55,7 @@ export class AuthController {
 
   @Post('refresh-token')
   @ApiOperation({ summary: 'Refresh access token using refresh token' })
+  @ApiException(InvalidRefreshTokenException, UnauthorizedException)
   @ApiResponseSchema({
     model: RefreshTokenAck,
     status: 201,

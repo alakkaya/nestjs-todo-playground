@@ -2,7 +2,8 @@ import { Body, Controller, Post } from '@nestjs/common';
 import { UserService } from '../service';
 import { CreateUserDto, CreateUserAck } from '../dto';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { ApiResponseSchema } from 'src/core/decorator';
+import { ApiException, ApiResponseSchema } from 'src/core/decorator';
+import { NicknameAlreadyTakenException } from 'src/core/error';
 
 @ApiTags('User')
 @Controller('user')
@@ -11,6 +12,7 @@ export class UserController {
 
   @Post()
   @ApiOperation({ summary: 'Create a new user' })
+  @ApiException(NicknameAlreadyTakenException)
   @ApiResponseSchema({
     model: CreateUserAck,
     status: 201,
