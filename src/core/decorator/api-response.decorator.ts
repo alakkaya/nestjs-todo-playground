@@ -1,10 +1,5 @@
 import { applyDecorators, Type } from '@nestjs/common';
-import {
-  ApiOkResponse,
-  ApiResponse,
-  getSchemaPath,
-  ApiExtraModels,
-} from '@nestjs/swagger';
+import { ApiResponse, getSchemaPath, ApiExtraModels } from '@nestjs/swagger';
 
 interface ApiResponseSchemaOptions<TModel> {
   model?: TModel;
@@ -54,9 +49,9 @@ export const ApiResponseSchema = <TModel extends Type<any>>(
                   },
                 },
               },
-              result: model
-                ? { $ref: getSchemaPath(model) }
-                : { type: 'object' },
+              ...(model && {
+                result: { $ref: getSchemaPath(model) },
+              }),
             },
           },
         ],
