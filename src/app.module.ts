@@ -8,6 +8,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from './modules/auth/auth.module';
 import { RedisModule } from '@nestjs-modules/ioredis';
 import { Environment } from './core/interface';
+import { TodoModule } from './modules/todo/todo.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { Environment } from './core/interface';
     }),
     UserModule,
     AuthModule,
+    TodoModule,
   ],
 
   controllers: [],
