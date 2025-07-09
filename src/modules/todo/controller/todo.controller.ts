@@ -19,7 +19,7 @@ import {
   UpdateTodoAck,
 } from '../dto';
 import { AuthGuard } from 'src/core/guard/auth.guard';
-import { ReqUser } from 'src/core/decorator';
+import { ApiException, ReqUser } from 'src/core/decorator';
 import { User } from 'src/core/interface';
 import {
   ApiBearerAuth,
@@ -27,6 +27,7 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { TodoNotFoundException } from 'src/core/error';
 
 @ApiTags('Todo')
 @Controller('todo')
@@ -65,6 +66,7 @@ export class TodoController {
 
   @Patch(':todoId')
   @ApiOperation({ summary: 'Update a todo' })
+  @ApiException(TodoNotFoundException)
   @ApiResponse({
     status: 200,
     description: 'Todo updated successfully',
@@ -80,6 +82,7 @@ export class TodoController {
 
   @Delete(':todoId')
   @ApiOperation({ summary: 'Delete a todo' })
+  @ApiException(TodoNotFoundException)
   @ApiResponse({
     status: 200,
     description: 'Todo deleted successfully',

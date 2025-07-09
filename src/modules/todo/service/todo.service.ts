@@ -3,8 +3,8 @@ import { TodoRepository } from '../repository/todo.repository';
 import { CreateTodoAck, CreateTodoDto } from '../dto/create-todo.dto';
 import { GetTodoAck, GetTodoDto } from '../dto/get-todo.dto';
 import { UpdateTodoAck, UpdateTodoDto } from '../dto';
-import { NotFoundException } from 'src/core/error';
 import { Todo } from 'src/core/interface';
+import { TodoNotFoundException } from 'src/core/error';
 
 @Injectable()
 export class TodoService {
@@ -53,7 +53,7 @@ export class TodoService {
     );
 
     if (!existingTodo) {
-      throw new NotFoundException('Todo not found or access denied');
+      throw new TodoNotFoundException();
     }
 
     return this.todoRepository.update(todoId, updateTodoDto);
@@ -66,7 +66,7 @@ export class TodoService {
     );
 
     if (!existingTodo) {
-      throw new NotFoundException('Todo not found or access denied');
+      throw new TodoNotFoundException();
     }
 
     await this.todoRepository.delete(todoId);
@@ -76,7 +76,7 @@ export class TodoService {
     const todo = await this.todoRepository.findByIdAndUserId(todoId, userId);
 
     if (!todo) {
-      throw new NotFoundException('Todo not found or access denied');
+      throw new TodoNotFoundException();
     }
 
     return todo;
