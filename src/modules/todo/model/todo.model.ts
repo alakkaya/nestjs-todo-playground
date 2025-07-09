@@ -29,6 +29,7 @@ export class TodoModel implements Todo {
     type: MongooseSchema.Types.ObjectId,
     ref: 'User',
     required: true,
+    index: true,
   })
   userId: string;
 
@@ -42,6 +43,12 @@ export const TodoFactory: AsyncModelFactory = {
   collection: CollectionName.TODO,
   name: TodoModel.name,
   useFactory: () => {
+    // Compound index: in GetTodoDto class we have userId and completed properties
+    TodoSchema.index({ userId: 1, completed: 1 });
+
+    // Sorting index: for sorting by createdAt in descending order
+    TodoSchema.index({ createdAt: -1 });
+
     TodoSchema.post('find', leanObjectsId);
     TodoSchema.post('findOne', leanObjectId);
     TodoSchema.post('findOneAndUpdate', leanObjectId);
