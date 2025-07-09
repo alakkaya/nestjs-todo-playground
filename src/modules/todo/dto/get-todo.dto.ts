@@ -82,13 +82,13 @@ export class TodoResponseDto {
     description: 'Creation timestamp',
     example: '2025-07-02T10:30:00.000Z',
   })
-  createdAt: Date;
+  createdAt?: Date;
 
   @ApiProperty({
     description: 'Last update timestamp',
     example: '2025-07-02T10:30:00.000Z',
   })
-  updatedAt: Date;
+  updatedAt?: Date;
 }
 
 export class GetTodoAck {
