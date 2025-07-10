@@ -16,6 +16,7 @@ export enum ErrorCode {
 
   //404
   NOT_FOUND = 40400,
+  TODO_NOT_FOUND = 40401,
 
   //429
   RACE_CONDITION = 42900,
