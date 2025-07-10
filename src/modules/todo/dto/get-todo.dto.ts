@@ -96,7 +96,7 @@ export class GetTodoAck {
     type: [TodoResponseDto],
     description: 'Array of todo items',
   })
-  todos: Todo[];
+  todos: TodoResponseDto[];
 
   @ApiProperty({
     description: 'Total number of todos matching the filter',
