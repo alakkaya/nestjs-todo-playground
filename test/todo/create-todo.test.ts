@@ -4,6 +4,7 @@ import { getAuthTokens } from '../common/auth.helper';
 import * as request from 'supertest';
 import { testConfig } from '../test-config';
 import { ErrorCode } from '../../src/core/error/error-code';
+import { TodoMongoModel } from '../../test/common';
 
 describe('Todo - Create', () => {
   let accessToken: string;
@@ -31,6 +32,18 @@ describe('Todo - Create', () => {
     expect(res.body.result.description).toBe(todoDto.description);
     expect(res.body.result.completed).toBe(false);
     expect(res.body.result.userId).toBe(userId);
+
+    // Verify the todo is saved in the database
+    const savedTodo = await TodoMongoModel.findById(res.body.result.id)
+      .lean()
+      .exec();
+    expect(savedTodo).toBeTruthy();
+    expect(savedTodo.title).toBe(todoDto.title);
+    expect(savedTodo.description).toBe(todoDto.description);
+    expect(savedTodo.completed).toBe(false);
+    expect(savedTodo.userId.toString()).toBe(userId);
+    expect(savedTodo.createdAt).toBeTruthy();
+    expect(savedTodo.updatedAt).toBeTruthy();
   });
 
   it('should return 400 for missing title', async () => {
@@ -42,6 +55,10 @@ describe('Todo - Create', () => {
     expect(res.body.meta.errorMessage).toEqual(
       expect.arrayContaining([expect.stringContaining('title')]),
     );
+
+    // Check that it is not saved in the database
+    const todoCount = await TodoMongoModel.countDocuments({}).exec();
+    expect(todoCount).toBe(0);
   });
 
   it('should return 401 if no token is provided', async () => {
@@ -52,5 +69,9 @@ describe('Todo - Create', () => {
     const res = await request(testConfig.baseUri).post('/todo').send(todoDto);
     expect(res.status).toBe(401);
     expect(res.body.meta.errorCode).toBe(ErrorCode.UNAUTHORIZED);
+
+    // Check that it is not saved in the database
+    const todoCount = await TodoMongoModel.countDocuments({}).exec();
+    expect(todoCount).toBe(0);
   });
 });
