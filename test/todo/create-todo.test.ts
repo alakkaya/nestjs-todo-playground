@@ -46,6 +46,73 @@ describe('Todo - Create', () => {
     expect(savedTodo.updatedAt).toBeTruthy();
   });
 
+  it('should isolate todos between different users', async () => {
+    // First user and todo
+    const firstTodoDto: CreateTodoDto = {
+      title: 'First User Todo',
+      description: 'First User Description',
+    };
+    const firstRes = await request(testConfig.baseUri)
+      .post('/todo')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send(firstTodoDto);
+
+    // Create second user
+    const secondUserDto = generateTestUserDto('second_user');
+    const secondUserRes = await createTestUser(secondUserDto);
+    const secondUserId = secondUserRes.body.result.id;
+    const secondTokens = await getAuthTokens(
+      secondUserDto.nickname,
+      secondUserDto.password,
+    );
+    const secondAccessToken = secondTokens.accessToken;
+
+    // Create todo for second user
+    const secondTodoDto: CreateTodoDto = {
+      title: 'Second User Todo',
+      description: 'Second User Description',
+    };
+    const secondRes = await request(testConfig.baseUri)
+      .post('/todo')
+      .set('Authorization', `Bearer ${secondAccessToken}`)
+      .send(secondTodoDto);
+
+    // Both todos should be created successfully
+    expect(firstRes.status).toBe(201);
+    expect(secondRes.status).toBe(201);
+
+    // Verify there are 2 todos in database
+    const allTodos = await TodoMongoModel.find({}).lean().exec();
+    expect(allTodos.length).toBe(2);
+
+    // Verify todos belong to different users
+    const firstUserTodos = allTodos.filter(
+      (todo) => todo.userId.toString() === userId,
+    );
+    const secondUserTodos = allTodos.filter(
+      (todo) => todo.userId.toString() === secondUserId,
+    );
+
+    expect(firstUserTodos.length).toBe(1);
+    expect(secondUserTodos.length).toBe(1);
+
+    // Verify content separation
+    expect(firstUserTodos[0].title).toBe(firstTodoDto.title);
+    expect(firstUserTodos[0].description).toBe(firstTodoDto.description);
+    expect(firstUserTodos[0].userId.toString()).toBe(userId);
+
+    expect(secondUserTodos[0].title).toBe(secondTodoDto.title);
+    expect(secondUserTodos[0].description).toBe(secondTodoDto.description);
+    expect(secondUserTodos[0].userId.toString()).toBe(secondUserId);
+
+    // Verify API responses are correct
+    expect(firstRes.body.result.userId).toBe(userId);
+    expect(firstRes.body.result.title).toBe(firstTodoDto.title);
+
+    expect(secondRes.body.result.userId).toBe(secondUserId);
+    expect(secondRes.body.result.title).toBe(secondTodoDto.title);
+  });
+
   it('should return 400 for missing title', async () => {
     const res = await request(testConfig.baseUri)
       .post('/todo')
