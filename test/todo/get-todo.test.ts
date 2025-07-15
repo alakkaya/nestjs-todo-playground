@@ -35,6 +35,102 @@ describe('Todo - Get/List', () => {
     expect(res.body.result.todos[0].userId).toBe(userId);
   });
 
+  it('should only return todos for the authenticated user (user isolation)', async () => {
+    // User A creates todos
+    const userATodo1 = await createTestTodo(accessToken, {
+      title: 'User A Todo 1',
+      description: 'User A Description 1',
+    });
+    const userATodo2 = await createTestTodo(accessToken, {
+      title: 'User A Todo 2',
+      description: 'User A Description 2',
+    });
+
+    // Create User B
+    const userBDto = generateTestUserDto('get_user_b');
+    const userBRes = await createTestUser(userBDto);
+    const userBId = userBRes.body.result.id;
+    const userBTokens = await getAuthTokens(
+      userBDto.nickname,
+      userBDto.password,
+    );
+    const userBAccessToken = userBTokens.accessToken;
+
+    // User B creates todos
+    const userBTodo1 = await createTestTodo(userBAccessToken, {
+      title: 'User B Todo 1',
+      description: 'User B Description 1',
+    });
+    const userBTodo2 = await createTestTodo(userBAccessToken, {
+      title: 'User B Todo 2',
+      description: 'User B Description 2',
+    });
+
+    // User A gets their todos - should only see their own
+    const userARes = await request(testConfig.baseUri)
+      .get('/todo')
+      .set('Authorization', `Bearer ${accessToken}`);
+
+    expect(userARes.status).toBe(200);
+    expect(userARes.body.result.todos.length).toBe(2);
+    expect(
+      userARes.body.result.todos.every((todo: any) => todo.userId === userId),
+    ).toBe(true);
+    expect(
+      userARes.body.result.todos.some(
+        (todo: any) => todo.title === 'User A Todo 1',
+      ),
+    ).toBe(true);
+    expect(
+      userARes.body.result.todos.some(
+        (todo: any) => todo.title === 'User A Todo 2',
+      ),
+    ).toBe(true);
+    expect(
+      userARes.body.result.todos.some(
+        (todo: any) => todo.title === 'User B Todo 1',
+      ),
+    ).toBe(false);
+    expect(
+      userARes.body.result.todos.some(
+        (todo: any) => todo.title === 'User B Todo 2',
+      ),
+    ).toBe(false);
+
+    // User B gets their todos - should only see their own
+    const userBGetRes = await request(testConfig.baseUri)
+      .get('/todo')
+      .set('Authorization', `Bearer ${userBAccessToken}`);
+
+    expect(userBGetRes.status).toBe(200);
+    expect(userBGetRes.body.result.todos.length).toBe(2);
+    expect(
+      userBGetRes.body.result.todos.every(
+        (todo: any) => todo.userId === userBId,
+      ),
+    ).toBe(true);
+    expect(
+      userBGetRes.body.result.todos.some(
+        (todo: any) => todo.title === 'User B Todo 1',
+      ),
+    ).toBe(true);
+    expect(
+      userBGetRes.body.result.todos.some(
+        (todo: any) => todo.title === 'User B Todo 2',
+      ),
+    ).toBe(true);
+    expect(
+      userBGetRes.body.result.todos.some(
+        (todo: any) => todo.title === 'User A Todo 1',
+      ),
+    ).toBe(false);
+    expect(
+      userBGetRes.body.result.todos.some(
+        (todo: any) => todo.title === 'User A Todo 2',
+      ),
+    ).toBe(false);
+  });
+
   it('should support pagination', async () => {
     // Create 15 todos for pagination test
     for (let i = 0; i < 15; i++) {
