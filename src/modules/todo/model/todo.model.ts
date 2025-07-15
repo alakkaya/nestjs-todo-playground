@@ -5,8 +5,8 @@ import {
   SchemaFactory,
 } from '@nestjs/mongoose';
 import { Schema as MongooseSchema, Document, Types } from 'mongoose';
-import { leanObjectId, leanObjectsId } from 'src/core/helper';
-import { CollectionName, Todo } from 'src/core/interface';
+import { leanObjectId, leanObjectsId } from '../../../core/helper';
+import { CollectionName, Todo } from '../../../core/interface';
 
 export type TodoDocument = TodoModel & Document;
 
