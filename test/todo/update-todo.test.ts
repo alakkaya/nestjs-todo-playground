@@ -1,5 +1,5 @@
 import { CreateTodoDto, UpdateTodoDto } from '../../src/modules/todo/dto';
-import { createTestUser } from '../common/user.helper';
+import { createTestUser, generateTestUserDto } from '../common/user.helper';
 import { getAuthTokens } from '../common/auth.helper';
 import * as request from 'supertest';
 import { testConfig } from '../test-config';
@@ -9,11 +9,7 @@ describe('Todo - Update', () => {
   let accessToken: string;
 
   beforeEach(async () => {
-    const userDto = {
-      fullname: 'Update Todo User',
-      nickname: `update_todo_${Math.random().toString(36).substring(2, 10)}`,
-      password: 'Password123!',
-    };
+    const userDto = generateTestUserDto('update_todo');
     await createTestUser(userDto);
     const tokens = await getAuthTokens(userDto.nickname, userDto.password);
     accessToken = tokens.accessToken;
@@ -69,7 +65,9 @@ describe('Todo - Update', () => {
       .send({ title: '' });
     expect(res.status).toBe(400);
     expect(res.body.meta.errorMessage).toEqual(
-      expect.arrayContaining([expect.stringContaining('Title cannot be empty')]),
+      expect.arrayContaining([
+        expect.stringContaining('Title cannot be empty'),
+      ]),
     );
   });
 
@@ -89,4 +87,4 @@ describe('Todo - Update', () => {
     expect(res.status).toBe(401);
     expect(res.body.meta.errorCode).toBe(ErrorCode.UNAUTHORIZED);
   });
-}); 
+});

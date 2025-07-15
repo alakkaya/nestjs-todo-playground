@@ -1,5 +1,5 @@
 import { CreateTodoDto } from '../../src/modules/todo/dto';
-import { createTestUser } from '../common/user.helper';
+import { createTestUser, generateTestUserDto } from '../common/user.helper';
 import { getAuthTokens } from '../common/auth.helper';
 import * as request from 'supertest';
 import { testConfig } from '../test-config';
@@ -10,11 +10,7 @@ describe('Todo - Create', () => {
   let userId: string;
 
   beforeEach(async () => {
-    const userDto = {
-      fullname: 'Create Todo User',
-      nickname: `create_todo_${Math.random().toString(36).substring(2, 10)}`,
-      password: 'Password123!',
-    };
+    const userDto = generateTestUserDto('create_todo');
     const userRes = await createTestUser(userDto);
     userId = userRes.body.result.id;
     const tokens = await getAuthTokens(userDto.nickname, userDto.password);
@@ -53,10 +49,8 @@ describe('Todo - Create', () => {
       title: 'No Auth',
       description: 'No Auth Desc',
     };
-    const res = await request(testConfig.baseUri)
-      .post('/todo')
-      .send(todoDto);
+    const res = await request(testConfig.baseUri).post('/todo').send(todoDto);
     expect(res.status).toBe(401);
     expect(res.body.meta.errorCode).toBe(ErrorCode.UNAUTHORIZED);
   });
-}); 
+});

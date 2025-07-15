@@ -1,5 +1,5 @@
 import { CreateTodoDto } from '../../src/modules/todo/dto';
-import { createTestUser } from '../common/user.helper';
+import { createTestUser, generateTestUserDto } from '../common/user.helper';
 import { getAuthTokens } from '../common/auth.helper';
 import * as request from 'supertest';
 import { testConfig } from '../test-config';
@@ -10,11 +10,7 @@ describe('Todo - Get/List', () => {
   let userId: string;
 
   beforeEach(async () => {
-    const userDto = {
-      fullname: 'Get Todo User',
-      nickname: `get_todo_${Math.random().toString(36).substring(2, 10)}`,
-      password: 'Password123!',
-    };
+    const userDto = generateTestUserDto('get_todo');
     const userRes = await createTestUser(userDto);
     userId = userRes.body.result.id;
     const tokens = await getAuthTokens(userDto.nickname, userDto.password);
@@ -63,7 +59,8 @@ describe('Todo - Get/List', () => {
     const todosRes = await request(testConfig.baseUri)
       .get('/todo')
       .set('Authorization', `Bearer ${accessToken}`);
-    const todoId = todosRes.body.result.todos[0].id || todosRes.body.result.todos[0]._id;
+    const todoId =
+      todosRes.body.result.todos[0].id || todosRes.body.result.todos[0]._id;
     await request(testConfig.baseUri)
       .patch(`/todo/${todoId}`)
       .set('Authorization', `Bearer ${accessToken}`)
@@ -72,13 +69,14 @@ describe('Todo - Get/List', () => {
       .get('/todo?completed=true')
       .set('Authorization', `Bearer ${accessToken}`);
     expect(filtered.status).toBe(200);
-    expect(filtered.body.result.todos.every((t: any) => t.completed)).toBe(true);
+    expect(filtered.body.result.todos.every((t: any) => t.completed)).toBe(
+      true,
+    );
   });
 
   it('should return 401 if no token is provided', async () => {
-    const res = await request(testConfig.baseUri)
-      .get('/todo');
+    const res = await request(testConfig.baseUri).get('/todo');
     expect(res.status).toBe(401);
     expect(res.body.meta.errorCode).toBe(ErrorCode.UNAUTHORIZED);
   });
-}); 
+});

@@ -1,5 +1,5 @@
 import { CreateTodoDto } from '../../src/modules/todo/dto';
-import { createTestUser } from '../common/user.helper';
+import { createTestUser, generateTestUserDto } from '../common/user.helper';
 import { getAuthTokens } from '../common/auth.helper';
 import * as request from 'supertest';
 import { testConfig } from '../test-config';
@@ -9,11 +9,7 @@ describe('Todo - Delete', () => {
   let accessToken: string;
 
   beforeEach(async () => {
-    const userDto = {
-      fullname: 'Delete Todo User',
-      nickname: `delete_todo_${Math.random().toString(36).substring(2, 10)}`,
-      password: 'Password123!',
-    };
+    const userDto = generateTestUserDto('delete_todo');
     await createTestUser(userDto);
     const tokens = await getAuthTokens(userDto.nickname, userDto.password);
     accessToken = tokens.accessToken;
@@ -60,9 +56,8 @@ describe('Todo - Delete', () => {
       .set('Authorization', `Bearer ${accessToken}`)
       .send(todoDto);
     const todoId = createRes.body.result.id;
-    const res = await request(testConfig.baseUri)
-      .delete(`/todo/${todoId}`);
+    const res = await request(testConfig.baseUri).delete(`/todo/${todoId}`);
     expect(res.status).toBe(401);
     expect(res.body.meta.errorCode).toBe(ErrorCode.UNAUTHORIZED);
   });
-}); 
+});
