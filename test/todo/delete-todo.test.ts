@@ -80,4 +80,62 @@ describe('Todo - Delete', () => {
     expect(res.status).toBe(401);
     expect(res.body.meta.errorCode).toBe(ErrorCode.UNAUTHORIZED);
   });
+
+  it('should only allow user to delete their own todos', async () => {
+    // User A creates a todo
+    const userATodoDto: CreateTodoDto = {
+      title: 'User A Todo',
+      description: 'User A Description',
+    };
+    const createRes = await request(testConfig.baseUri)
+      .post('/todo')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send(userATodoDto);
+    const todoId = createRes.body.result.id;
+
+    // Verify todo exists in database
+    const todoBeforeDelete = await TodoMongoModel.findById(todoId)
+      .lean()
+      .exec();
+    expect(todoBeforeDelete).toBeTruthy();
+    expect(todoBeforeDelete.title).toBe(userATodoDto.title);
+
+    // Create User B
+    const userBDto = generateTestUserDto('del_user_b');
+    await createTestUser(userBDto);
+    const userBTokens = await getAuthTokens(
+      userBDto.nickname,
+      userBDto.password,
+    );
+    const userBAccessToken = userBTokens.accessToken;
+
+    // User B tries to delete User A's todo - should return 404 (not found) for security
+    const deleteRes = await request(testConfig.baseUri)
+      .delete(`/todo/${todoId}`)
+      .set('Authorization', `Bearer ${userBAccessToken}`);
+    expect(deleteRes.status).toBe(404);
+    expect(deleteRes.body.meta.errorCode).toBe(ErrorCode.TODO_NOT_FOUND);
+
+    // Verify todo still exists in database (User B couldn't delete it)
+    const todoAfterFailedDelete = await TodoMongoModel.findById(todoId)
+      .lean()
+      .exec();
+    expect(todoAfterFailedDelete).toBeTruthy();
+    expect(todoAfterFailedDelete.title).toBe(userATodoDto.title);
+    expect(todoAfterFailedDelete.description).toBe(userATodoDto.description);
+
+    // Verify User A can still delete their own todo
+    const validDeleteRes = await request(testConfig.baseUri)
+      .delete(`/todo/${todoId}`)
+      .set('Authorization', `Bearer ${accessToken}`);
+    expect(validDeleteRes.status).toBe(200);
+
+    // Verify todo is now actually deleted from database
+    const finalCheck = await TodoMongoModel.findById(todoId).lean().exec();
+    expect(finalCheck).toBeNull();
+
+    // Verify database count is 0
+    const todoCount = await TodoMongoModel.countDocuments({}).exec();
+    expect(todoCount).toBe(0);
+  });
 });
