@@ -4,6 +4,7 @@ import { getAuthTokens } from '../common/auth.helper';
 import * as request from 'supertest';
 import { testConfig } from '../test-config';
 import { ErrorCode } from '../../src/core/error/error-code';
+import { TodoMongoModel } from '../../test/common';
 
 describe('Todo - Delete', () => {
   let accessToken: string;
@@ -25,11 +26,30 @@ describe('Todo - Delete', () => {
       .set('Authorization', `Bearer ${accessToken}`)
       .send(todoDto);
     const todoId = createRes.body.result.id;
+
+    // Verify todo exists in database before deletion
+    const todoBeforeDeletion = await TodoMongoModel.findById(todoId)
+      .lean()
+      .exec();
+    expect(todoBeforeDeletion).toBeTruthy();
+
+    // Delete the todo
     const delRes = await request(testConfig.baseUri)
       .delete(`/todo/${todoId}`)
       .set('Authorization', `Bearer ${accessToken}`);
     expect(delRes.status).toBe(200);
-    // Tekrar silmeye çalışınca 404 dönmeli
+
+    // Verify todo is actually deleted from database
+    const todoAfterDeletion = await TodoMongoModel.findById(todoId)
+      .lean()
+      .exec();
+    expect(todoAfterDeletion).toBeNull();
+
+    // Verify database count decreased
+    const todoCount = await TodoMongoModel.countDocuments({}).exec();
+    expect(todoCount).toBe(0);
+
+    // Try to delete again - should return 404
     const delRes2 = await request(testConfig.baseUri)
       .delete(`/todo/${todoId}`)
       .set('Authorization', `Bearer ${accessToken}`);
