@@ -1,5 +1,10 @@
 import { CreateTodoDto } from '../../src/modules/todo/dto';
-import { createTestUser, generateTestUserDto } from '../common/user.helper';
+import {
+  createTestUser,
+  generateTestUserDto,
+  createTestTodo,
+  generateTestTodoDto,
+} from '../common';
 import { getAuthTokens } from '../common/auth.helper';
 import * as request from 'supertest';
 import { testConfig } from '../test-config';
@@ -19,14 +24,9 @@ describe('Todo - Create', () => {
   });
 
   it('should create a todo', async () => {
-    const todoDto: CreateTodoDto = {
-      title: 'Test Todo',
-      description: 'Test Description',
-    };
-    const res = await request(testConfig.baseUri)
-      .post('/todo')
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send(todoDto);
+    const todoDto = generateTestTodoDto('create');
+    const res = await createTestTodo(accessToken, todoDto);
+
     expect(res.status).toBe(201);
     expect(res.body.result.title).toBe(todoDto.title);
     expect(res.body.result.description).toBe(todoDto.description);
@@ -48,14 +48,8 @@ describe('Todo - Create', () => {
 
   it('should isolate todos between different users', async () => {
     // First user and todo
-    const firstTodoDto: CreateTodoDto = {
-      title: 'First User Todo',
-      description: 'First User Description',
-    };
-    const firstRes = await request(testConfig.baseUri)
-      .post('/todo')
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send(firstTodoDto);
+    const firstTodoDto = generateTestTodoDto('first_user');
+    const firstRes = await createTestTodo(accessToken, firstTodoDto);
 
     // Create second user
     const secondUserDto = generateTestUserDto('second_user');
@@ -68,14 +62,8 @@ describe('Todo - Create', () => {
     const secondAccessToken = secondTokens.accessToken;
 
     // Create todo for second user
-    const secondTodoDto: CreateTodoDto = {
-      title: 'Second User Todo',
-      description: 'Second User Description',
-    };
-    const secondRes = await request(testConfig.baseUri)
-      .post('/todo')
-      .set('Authorization', `Bearer ${secondAccessToken}`)
-      .send(secondTodoDto);
+    const secondTodoDto = generateTestTodoDto('second_user');
+    const secondRes = await createTestTodo(secondAccessToken, secondTodoDto);
 
     // Both todos should be created successfully
     expect(firstRes.status).toBe(201);
@@ -108,7 +96,6 @@ describe('Todo - Create', () => {
     // Verify API responses are correct
     expect(firstRes.body.result.userId).toBe(userId);
     expect(firstRes.body.result.title).toBe(firstTodoDto.title);
-
     expect(secondRes.body.result.userId).toBe(secondUserId);
     expect(secondRes.body.result.title).toBe(secondTodoDto.title);
   });
@@ -129,10 +116,7 @@ describe('Todo - Create', () => {
   });
 
   it('should return 401 if no token is provided', async () => {
-    const todoDto: CreateTodoDto = {
-      title: 'No Auth',
-      description: 'No Auth Desc',
-    };
+    const todoDto = generateTestTodoDto('no_auth');
     const res = await request(testConfig.baseUri).post('/todo').send(todoDto);
     expect(res.status).toBe(401);
     expect(res.body.meta.errorCode).toBe(ErrorCode.UNAUTHORIZED);

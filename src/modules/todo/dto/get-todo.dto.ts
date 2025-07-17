@@ -50,7 +50,7 @@ export class TodoResponseDto {
     description: 'ID of the todo item',
     example: '507f1f77bcf86cd799439012',
   })
-  id: string;
+  _id: string;
 
   @ApiProperty({
     description: 'Title of the todo item',
