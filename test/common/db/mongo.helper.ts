@@ -4,6 +4,10 @@ import {
   UserModel,
   UserSchema,
 } from '../../../src/modules/user/model/user.model';
+import {
+  TodoModel,
+  TodoSchema,
+} from '../../../src/modules/todo/model/todo.model';
 
 export const mongoDb = mongoose.connection;
 
@@ -27,4 +31,8 @@ export const closeMongoDb = async (): Promise<void> => {
 
 export const UserMongoModel = <Model<UserModel>>(
   (mongoose.models.UserModel || mongoose.model('UserModel', UserSchema, 'user'))
+);
+
+export const TodoMongoModel = <Model<TodoModel>>(
+  (mongoose.models.TodoModel || mongoose.model('TodoModel', TodoSchema, 'todo'))
 );
