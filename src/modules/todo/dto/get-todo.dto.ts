@@ -1,8 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { IsOptional, IsBoolean, IsNumber, Min, Max } from 'class-validator';
-import { Todo } from 'src/core/interface';
-import { TodoModel } from '../model/todo.model';
 
 export class GetTodoDto {
   @IsOptional()
