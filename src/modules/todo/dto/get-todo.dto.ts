@@ -20,7 +20,7 @@ export class GetTodoDto {
   @IsOptional()
   @IsNumber()
   @Min(1)
-  @Max(100) // Sayfa başına maksimum 100 item
+  @Max(100) // Assuming a maximum limit of 100 items per page
   @Transform(({ value }) => parseInt(value))
   @ApiProperty({
     required: false,
@@ -52,7 +52,7 @@ export class TodoResponseDto {
     description: 'ID of the todo item',
     example: '507f1f77bcf86cd799439012',
   })
-  _id: string;
+  id: string;
 
   @ApiProperty({
     description: 'Title of the todo item',
