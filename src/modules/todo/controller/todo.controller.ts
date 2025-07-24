@@ -17,6 +17,7 @@ import {
   GetTodoAck,
   UpdateTodoDto,
   UpdateTodoAck,
+  SearchTodoAck,
 } from '../dto';
 import { AuthGuard } from 'src/core/guard/auth.guard';
 import { ApiException, ReqUser } from 'src/core/decorator';
@@ -28,6 +29,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { TodoNotFoundException } from 'src/core/error';
+import { TodoElastic } from 'src/modules/utils/elastic-search/interface';
 
 @ApiTags('Todo')
 @Controller('todo')
@@ -92,5 +94,23 @@ export class TodoController {
     @ReqUser() user: User,
   ): Promise<void> {
     return this.todoService.delete(todoId, user._id);
+  }
+
+  @Get('search')
+  @ApiOperation({ summary: 'Search todos' })
+  @ApiResponse({
+    status: 200,
+    description: 'Todos found by search',
+    type: SearchTodoAck,
+  })
+  async search(
+    @Query('query') query: string,
+    @ReqUser() user: User,
+  ): Promise<SearchTodoAck> {
+    const results = await this.todoService.searchTodos(query, user._id);
+    return {
+      todos: results,
+      total: results.length,
+    };
   }
 }

@@ -2,13 +2,18 @@ import { Injectable } from '@nestjs/common';
 import { TodoRepository } from '../repository/todo.repository';
 import { CreateTodoAck, CreateTodoDto } from '../dto/create-todo.dto';
 import { GetTodoAck, GetTodoDto } from '../dto/get-todo.dto';
-import { UpdateTodoAck, UpdateTodoDto } from '../dto';
+import { SearchTodoAck, UpdateTodoAck, UpdateTodoDto } from '../dto';
 import { Todo } from 'src/core/interface';
 import { TodoNotFoundException } from 'src/core/error';
+import { TodoElastic } from 'src/modules/utils/elastic-search/interface';
+import { TodoSearchService } from 'src/modules/utils/elastic-search/services/todo-search.service';
 
 @Injectable()
 export class TodoService {
-  constructor(private readonly todoRepository: TodoRepository) {}
+  constructor(
+    private readonly todoRepository: TodoRepository,
+    private readonly todoSearchService: TodoSearchService,
+  ) {}
 
   async create(todo: CreateTodoDto, userId: string): Promise<CreateTodoAck> {
     const todoData = {
@@ -80,5 +85,9 @@ export class TodoService {
     }
 
     return todo;
+  }
+
+  async searchTodos(query: string, userId: string): Promise<TodoElastic[]> {
+    return this.todoSearchService.search(query, userId);
   }
 }
