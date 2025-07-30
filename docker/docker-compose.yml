@@ -37,7 +37,7 @@ services:
       - nestjs-todo-network
 
   es01:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.1
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.0.3
     environment:
       - node.name=es01
       - cluster.name=es-docker-cluster
@@ -57,7 +57,7 @@ services:
     networks:
       - nestjs-todo-network
   es02:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.1
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.0.3
     environment:
       - node.name=es02
       - cluster.name=es-docker-cluster
@@ -75,7 +75,7 @@ services:
     networks:
       - nestjs-todo-network
   es03:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.1
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.0.3
     environment:
       - node.name=es03
       - cluster.name=es-docker-cluster
