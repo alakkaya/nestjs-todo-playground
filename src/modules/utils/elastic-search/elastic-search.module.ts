@@ -15,7 +15,7 @@ import { TodoSearchService } from './services/todo-search.service';
           password: configService.get<string>('ELASTICSEARCH_PASSWORD'),
         },
       }),
-      inject: [ConfigModule],
+      inject: [ConfigService<Environment>],
     }),
   ],
   providers: [TodoSearchService],
