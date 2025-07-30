@@ -23,17 +23,30 @@ export class TodoSearchService {
         bool: {
           must: [
             {
-              multi_match: {
-                query: query,
-                fields: ['title', 'description'],
-              },
-            },
-            {
               match: {
                 userId: userId,
               },
             },
           ],
+          should: [
+            {
+              wildcard: {
+                title: {
+                  value: `${query}*`,
+                  case_insensitive: true,
+                },
+              },
+            },
+            {
+              wildcard: {
+                description: {
+                  value: `${query}*`,
+                  case_insensitive: true,
+                },
+              },
+            },
+          ],
+          minimum_should_match: 1,
         },
       },
     });
