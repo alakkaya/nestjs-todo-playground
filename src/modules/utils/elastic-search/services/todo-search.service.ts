@@ -7,15 +7,24 @@ import { SearchIndex } from '../enum/search-index';
 export class TodoSearchService {
   constructor(private readonly elasticsearchService: ElasticsearchService) {}
 
-  async search(text: string, userId: string): Promise<TodoElastic[]> {
+  async search(
+    query: string,
+    userId: string,
+    page = 1,
+    limit = 10,
+  ): Promise<{ todos: TodoElastic[]; total: number }> {
+    const from = (page - 1) * limit;
+
     const result = await this.elasticsearchService.search<TodoElastic>({
       index: SearchIndex.TODO_SEARCH,
+      from,
+      size: limit,
       query: {
         bool: {
           must: [
             {
               multi_match: {
-                query: text,
+                query: query,
                 fields: ['title', 'description'],
               },
             },
@@ -29,7 +38,13 @@ export class TodoSearchService {
       },
     });
 
-    return result.hits.hits.map((hit) => hit._source as TodoElastic);
+    const todos = result.hits.hits.map((hit) => hit._source as TodoElastic);
+    const total =
+      typeof result.hits.total === 'object'
+        ? result.hits.total.value
+        : result.hits.total;
+
+    return { todos, total };
   }
 
   async insert(todo: TodoElastic): Promise<void> {

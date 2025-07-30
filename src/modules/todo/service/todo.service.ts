@@ -2,7 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { TodoRepository } from '../repository/todo.repository';
 import { CreateTodoAck, CreateTodoDto } from '../dto/create-todo.dto';
 import { GetTodoAck, GetTodoDto } from '../dto/get-todo.dto';
-import { SearchTodoAck, UpdateTodoAck, UpdateTodoDto } from '../dto';
+import {
+  SearchTodoAck,
+  SearchTodoDto,
+  UpdateTodoAck,
+  UpdateTodoDto,
+} from '../dto';
 import { Todo } from 'src/core/interface';
 import { TodoNotFoundException } from 'src/core/error';
 import { TodoElastic } from 'src/modules/utils/elastic-search/interface';
@@ -87,7 +92,24 @@ export class TodoService {
     return todo;
   }
 
-  async searchTodos(query: string, userId: string): Promise<TodoElastic[]> {
-    return this.todoSearchService.search(query, userId);
+  async search(
+    searchDto: SearchTodoDto,
+    userId: string,
+  ): Promise<SearchTodoAck> {
+    const { query, page = 1, limit = 10 } = searchDto;
+    const { todos, total } = await this.todoSearchService.search(
+      query,
+      userId,
+      page,
+      limit,
+    );
+
+    return {
+      todos,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 }

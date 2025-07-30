@@ -18,6 +18,7 @@ import {
   UpdateTodoDto,
   UpdateTodoAck,
   SearchTodoAck,
+  SearchTodoDto,
 } from '../dto';
 import { AuthGuard } from 'src/core/guard/auth.guard';
 import { ApiException, ReqUser } from 'src/core/decorator';
@@ -104,13 +105,9 @@ export class TodoController {
     type: SearchTodoAck,
   })
   async search(
-    @Query('query') query: string,
+    @Query() searchDto: SearchTodoDto,
     @ReqUser() user: User,
   ): Promise<SearchTodoAck> {
-    const results = await this.todoService.searchTodos(query, user._id);
-    return {
-      todos: results,
-      total: results.length,
-    };
+    return this.todoService.search(searchDto, user._id);
   }
 }
