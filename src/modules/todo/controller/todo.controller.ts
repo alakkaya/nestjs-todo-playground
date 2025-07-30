@@ -21,7 +21,7 @@ import {
   SearchTodoDto,
 } from '../dto';
 import { AuthGuard } from 'src/core/guard/auth.guard';
-import { ApiException, ReqUser } from 'src/core/decorator';
+import { ApiException, ApiResponseSchema, ReqUser } from 'src/core/decorator';
 import { User } from 'src/core/interface';
 import {
   ApiBearerAuth,
@@ -30,7 +30,6 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { TodoNotFoundException } from 'src/core/error';
-import { TodoElastic } from 'src/modules/utils/elastic-search/interface';
 
 @ApiTags('Todo')
 @Controller('todo')
@@ -41,10 +40,10 @@ export class TodoController {
 
   @Post()
   @ApiOperation({ summary: 'Create a new todo' })
-  @ApiResponse({
+  @ApiResponseSchema({
     status: 201,
     description: 'Todo created successfully',
-    type: CreateTodoAck,
+    model: CreateTodoAck,
   })
   async create(
     @Body() createTodoDto: CreateTodoDto,
@@ -55,10 +54,10 @@ export class TodoController {
 
   @Get()
   @ApiOperation({ summary: 'Get todos for the authenticated user' })
-  @ApiResponse({
+  @ApiResponseSchema({
     status: 200,
     description: 'Todos retrieved successfully',
-    type: GetTodoAck,
+    model: GetTodoAck,
   })
   async findAll(
     @Query() getTodoDto: GetTodoDto,
@@ -70,10 +69,10 @@ export class TodoController {
   @Patch(':todoId')
   @ApiOperation({ summary: 'Update a todo' })
   @ApiException(TodoNotFoundException)
-  @ApiResponse({
+  @ApiResponseSchema({
     status: 200,
     description: 'Todo updated successfully',
-    type: UpdateTodoAck,
+    model: UpdateTodoAck,
   })
   async update(
     @Param('todoId') todoId: string,
@@ -86,7 +85,7 @@ export class TodoController {
   @Delete(':todoId')
   @ApiOperation({ summary: 'Delete a todo' })
   @ApiException(TodoNotFoundException)
-  @ApiResponse({
+  @ApiResponseSchema({
     status: 200,
     description: 'Todo deleted successfully',
   })
@@ -99,10 +98,10 @@ export class TodoController {
 
   @Get('search')
   @ApiOperation({ summary: 'Search todos' })
-  @ApiResponse({
+  @ApiResponseSchema({
     status: 200,
     description: 'Todos found by search',
-    type: SearchTodoAck,
+    model: SearchTodoAck,
   })
   async search(
     @Query() searchDto: SearchTodoDto,

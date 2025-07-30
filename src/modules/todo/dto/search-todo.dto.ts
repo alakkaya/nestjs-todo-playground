@@ -1,13 +1,36 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
+import { IsInt, IsOptional, IsString, Min } from 'class-validator';
 
 export class SearchTodoDto {
-  @ApiProperty()
+  @IsString()
+  @ApiProperty({
+    description: 'Search query for todos',
+    example: 'meeting',
+    required: true,
+  })
   query: string;
 
-  @ApiProperty({ required: false, default: 1 })
+  @IsOptional()
+  @IsInt()
+  @ApiProperty({
+    description: 'Current page number',
+    example: 1,
+    required: false,
+  })
+  @Min(1)
+  @Transform(({ value }) => parseInt(value))
   page?: number = 1;
 
-  @ApiProperty({ required: false, default: 10 })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Transform(({ value }) => parseInt(value))
+  @ApiProperty({
+    description: 'Number of items per page',
+    example: 10,
+    required: false,
+  })
   limit?: number = 10;
 }
 

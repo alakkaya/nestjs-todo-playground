@@ -26,7 +26,19 @@ export class TodoService {
       userId,
       completed: false, // Default to false when creating a new todo
     };
-    return this.todoRepository.create(todoData);
+    const createdTodo = await this.todoRepository.create(todoData);
+
+    await this.todoSearchService.insert({
+      id: createdTodo.id,
+      title: createdTodo.title,
+      description: createdTodo.description,
+      completed: createdTodo.completed,
+      userId: createdTodo.userId,
+      createdAt: createdTodo.createdAt,
+      updatedAt: createdTodo.updatedAt,
+    });
+
+    return createdTodo;
   }
 
   async findByUserId(
@@ -66,7 +78,20 @@ export class TodoService {
       throw new TodoNotFoundException();
     }
 
-    return this.todoRepository.update(todoId, updateTodoDto);
+    const updatedTodo = await this.todoRepository.update(todoId, updateTodoDto);
+
+    // Elastic'te güncelle
+    await this.todoSearchService.update({
+      id: updatedTodo.id,
+      title: updatedTodo.title,
+      description: updatedTodo.description,
+      completed: updatedTodo.completed,
+      userId: updatedTodo.userId,
+      createdAt: updatedTodo.createdAt,
+      updatedAt: updatedTodo.updatedAt,
+    });
+
+    return updatedTodo;
   }
 
   async delete(todoId: string, userId: string): Promise<void> {
@@ -80,6 +105,7 @@ export class TodoService {
     }
 
     await this.todoRepository.delete(todoId);
+    await this.todoSearchService.delete(todoId);
   }
 
   async findById(todoId: string, userId: string): Promise<Todo> {
