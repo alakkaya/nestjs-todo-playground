@@ -2,7 +2,13 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class SearchTodoDto {
   @ApiProperty()
-  text: string;
+  query: string;
+
+  @ApiProperty({ required: false, default: 1 })
+  page?: number = 1;
+
+  @ApiProperty({ required: false, default: 10 })
+  limit?: number = 10;
 }
 
 export class SearchTodoItemDto {
@@ -34,4 +40,13 @@ export class SearchTodoAck {
 
   @ApiProperty({ description: 'Toplam sonuç sayısı' })
   total: number;
+
+  @ApiProperty()
+  page: number;
+
+  @ApiProperty()
+  limit: number;
+
+  @ApiProperty()
+  totalPages: number;
 }
