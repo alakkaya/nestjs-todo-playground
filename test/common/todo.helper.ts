@@ -25,3 +25,7 @@ export function generateTestTodoDto(prefix: string = 'test'): CreateTodoDto {
     description: `${prefix.charAt(0).toUpperCase() + prefix.slice(1)} Description`,
   };
 }
+
+export const sleep = (ms: number): Promise<void> => {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+};
