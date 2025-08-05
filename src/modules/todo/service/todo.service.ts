@@ -104,8 +104,10 @@ export class TodoService {
       throw new TodoNotFoundException();
     }
 
-    await this.todoRepository.delete(todoId);
-    await this.todoSearchService.delete(todoId);
+    await Promise.all([
+      this.todoRepository.delete(todoId),
+      this.todoSearchService.delete(todoId),
+    ]);
   }
 
   async findById(todoId: string, userId: string): Promise<Todo> {
