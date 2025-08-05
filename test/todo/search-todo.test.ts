@@ -3,11 +3,14 @@ import {
   generateTestUserDto,
   createTestTodo,
   generateTestTodoDto,
+  sleep,
 } from '../common';
 import { getAuthTokens } from '../common/auth.helper';
 import * as request from 'supertest';
 import { testConfig } from '../test-config';
 import { ErrorCode } from '../../src/core/error/error-code';
+import { Todo } from 'src/core/interface';
+import { TEST_TIMEOUTS } from 'test/common/constants/test-timeouts.constants';
 
 describe('Todo - Search', () => {
   let accessToken: string;
@@ -23,26 +26,31 @@ describe('Todo - Search', () => {
 
   it('should search todos by title', async () => {
     // Create todos for search test
-    await createTestTodo(accessToken, {
+    const meetingTodoRes = await createTestTodo(accessToken, {
       title: 'Meeting',
       description: 'Discuss project',
     });
+    const meetingTodoId = meetingTodoRes.body.result.id;
+
     await createTestTodo(accessToken, {
       title: 'Shopping',
       description: 'Buy milk',
     });
     // Wait for Elasticsearch to index the new todos
-    await new Promise((r) => setTimeout(r, 1500));
+    await sleep(TEST_TIMEOUTS.ELASTICSEARCH_INDEX);
     const res = await request(testConfig.baseUri)
       .get('/todo/search?query=Meet')
       .set('Authorization', `Bearer ${accessToken}`);
     expect(res.status).toBe(200);
     // Check that at least one todo is found
-    expect(res.body.result.todos.length).toBeGreaterThan(0);
-    // Check that the first todo's title contains 'Meeting'
-    expect(res.body.result.todos[0].title).toContain('Meeting');
+    expect(res.body.result.todos.length).toBe(1);
+    // Check that the first todo's title is 'Meeting'
+    expect(res.body.result.todos[0].title).toBe('Meeting');
+    // Check that the found todo's ID matches the created todo
+    expect(res.body.result.todos[0].id).toBe(meetingTodoId);
+
     // Ensure all todos belong to the test user
-    expect(res.body.result.todos.every((t: any) => t.userId === userId)).toBe(
+    expect(res.body.result.todos.every((t: Todo) => t.userId === userId)).toBe(
       true,
     );
   });
@@ -54,7 +62,7 @@ describe('Todo - Search', () => {
       description: 'Discuss project',
     });
     // Wait for Elasticsearch to index
-    await new Promise((r) => setTimeout(r, 1500));
+    await sleep(TEST_TIMEOUTS.ELASTICSEARCH_INDEX);
     const res = await request(testConfig.baseUri)
       .get('/todo/search?query=project')
       .set('Authorization', `Bearer ${accessToken}`);
@@ -80,14 +88,20 @@ describe('Todo - Search', () => {
 
   it('should support pagination', async () => {
     // Create 15 todos for pagination test
+    const createTodoPromises = [];
     for (let i = 0; i < 15; i++) {
-      await createTestTodo(accessToken, {
-        title: `Paginate ${i}`,
-        description: 'desc',
-      });
+      createTodoPromises.push(
+        createTestTodo(accessToken, {
+          title: `Paginate ${i}`,
+          description: 'desc',
+        }),
+      );
     }
+
+    await Promise.all(createTodoPromises);
+
     // Wait for Elasticsearch to index all todos
-    await new Promise((r) => setTimeout(r, 1500));
+    await sleep(TEST_TIMEOUTS.ELASTICSEARCH_INDEX);
     const res = await request(testConfig.baseUri)
       .get('/todo/search?query=Paginate&page=2&limit=10')
       .set('Authorization', `Bearer ${accessToken}`);
@@ -107,6 +121,7 @@ describe('Todo - Search', () => {
       title: 'UserA Todo',
       description: 'desc',
     });
+
     // Create User B with a short nickname to avoid validation error
     const userBDto = generateTestUserDto('usrB');
     const userBRes = await createTestUser(userBDto);
@@ -116,31 +131,59 @@ describe('Todo - Search', () => {
       userBDto.password,
     );
     const userBAccessToken = userBTokens.accessToken;
+
     // Create a todo for User B
     await createTestTodo(userBAccessToken, {
       title: 'UserB Todo',
       description: 'desc',
     });
+
     // Wait for Elasticsearch to index todos for both users
-    await new Promise((r) => setTimeout(r, 1500));
+    await sleep(TEST_TIMEOUTS.ELASTICSEARCH_INDEX);
+
     // User A search
     const userARes = await request(testConfig.baseUri)
       .get('/todo/search?query=Todo')
       .set('Authorization', `Bearer ${accessToken}`);
     expect(userARes.status).toBe(200);
+
+    // User A should find exactly 1 todo (their own)
+    expect(userARes.body.result.todos.length).toBe(1);
+    expect(userARes.body.result.total).toBe(1);
+    expect(userARes.body.result.todos[0].title).toBe('UserA Todo');
+
     // Ensure all found todos belong to User A
     expect(
-      userARes.body.result.todos.every((t: any) => t.userId === userId),
+      userARes.body.result.todos.every((t: Todo) => t.userId === userId),
     ).toBe(true);
+
     // User B search
     const userBResSearch = await request(testConfig.baseUri)
       .get('/todo/search?query=Todo')
       .set('Authorization', `Bearer ${userBAccessToken}`);
     expect(userBResSearch.status).toBe(200);
+
+    // User B should find exactly 1 todo (their own)
+    expect(userBResSearch.body.result.todos.length).toBe(1);
+    expect(userBResSearch.body.result.total).toBe(1);
+    expect(userBResSearch.body.result.todos[0].title).toBe('UserB Todo');
+
     // Ensure all found todos belong to User B
     expect(
-      userBResSearch.body.result.todos.every((t: any) => t.userId === userBId),
+      userBResSearch.body.result.todos.every((t: Todo) => t.userId === userBId),
     ).toBe(true);
+
+    // Cross-verification: User A should not see User B's todo
+    expect(
+      userARes.body.result.todos.some((t: Todo) => t.title === 'UserB Todo'),
+    ).toBe(false);
+
+    // Cross-verification: User B should not see User A's todo
+    expect(
+      userBResSearch.body.result.todos.some(
+        (t: Todo) => t.title === 'UserA Todo',
+      ),
+    ).toBe(false);
   });
 
   it('should return 400 for missing query', async () => {
