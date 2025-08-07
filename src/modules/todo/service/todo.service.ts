@@ -2,13 +2,23 @@ import { Injectable } from '@nestjs/common';
 import { TodoRepository } from '../repository/todo.repository';
 import { CreateTodoAck, CreateTodoDto } from '../dto/create-todo.dto';
 import { GetTodoAck, GetTodoDto } from '../dto/get-todo.dto';
-import { UpdateTodoAck, UpdateTodoDto } from '../dto';
+import {
+  SearchTodoAck,
+  SearchTodoDto,
+  UpdateTodoAck,
+  UpdateTodoDto,
+} from '../dto';
 import { Todo } from 'src/core/interface';
 import { TodoNotFoundException } from 'src/core/error';
+import { TodoElastic } from 'src/modules/utils/elastic-search/interface';
+import { TodoSearchService } from 'src/modules/utils/elastic-search/services/todo-search.service';
 
 @Injectable()
 export class TodoService {
-  constructor(private readonly todoRepository: TodoRepository) {}
+  constructor(
+    private readonly todoRepository: TodoRepository,
+    private readonly todoSearchService: TodoSearchService,
+  ) {}
 
   async create(todo: CreateTodoDto, userId: string): Promise<CreateTodoAck> {
     const todoData = {
@@ -16,7 +26,19 @@ export class TodoService {
       userId,
       completed: false, // Default to false when creating a new todo
     };
-    return this.todoRepository.create(todoData);
+    const createdTodo = await this.todoRepository.create(todoData);
+
+    await this.todoSearchService.insert({
+      id: createdTodo.id,
+      title: createdTodo.title,
+      description: createdTodo.description,
+      completed: createdTodo.completed,
+      userId: createdTodo.userId,
+      createdAt: createdTodo.createdAt,
+      updatedAt: createdTodo.updatedAt,
+    });
+
+    return createdTodo;
   }
 
   async findByUserId(
@@ -56,7 +78,20 @@ export class TodoService {
       throw new TodoNotFoundException();
     }
 
-    return this.todoRepository.update(todoId, updateTodoDto);
+    const updatedTodo = await this.todoRepository.update(todoId, updateTodoDto);
+
+    // Elastic'te güncelle
+    await this.todoSearchService.update({
+      id: updatedTodo.id,
+      title: updatedTodo.title,
+      description: updatedTodo.description,
+      completed: updatedTodo.completed,
+      userId: updatedTodo.userId,
+      createdAt: updatedTodo.createdAt,
+      updatedAt: updatedTodo.updatedAt,
+    });
+
+    return updatedTodo;
   }
 
   async delete(todoId: string, userId: string): Promise<void> {
@@ -69,7 +104,10 @@ export class TodoService {
       throw new TodoNotFoundException();
     }
 
-    await this.todoRepository.delete(todoId);
+    await Promise.all([
+      this.todoRepository.delete(todoId),
+      this.todoSearchService.delete(todoId),
+    ]);
   }
 
   async findById(todoId: string, userId: string): Promise<Todo> {
@@ -80,5 +118,26 @@ export class TodoService {
     }
 
     return todo;
+  }
+
+  async search(
+    searchDto: SearchTodoDto,
+    userId: string,
+  ): Promise<SearchTodoAck> {
+    const { query, page = 1, limit = 10 } = searchDto;
+    const { todos, total } = await this.todoSearchService.search(
+      query,
+      userId,
+      page,
+      limit,
+    );
+
+    return {
+      todos,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 }

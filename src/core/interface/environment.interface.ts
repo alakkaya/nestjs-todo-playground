@@ -7,4 +7,7 @@ export interface Environment {
   JWT_EXPIRATION_REFRESH: string;
   REDIS_HOST: string;
   REDIS_PORT: number;
+  ELASTICSEARCH_NODE: string;
+  ELASTICSEARCH_USERNAME: string;
+  ELASTICSEARCH_PASSWORD: string;
 }
