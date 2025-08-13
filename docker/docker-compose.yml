@@ -36,6 +36,27 @@ services:
     networks:
       - nestjs-todo-network
 
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    container_name: nestjs-todo-rabbitmq
+    hostname: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin123
+      RABBITMQ_DEFAULT_VHOST: /
+    ports:
+      - '5672:5672' # AMQP port
+      - '15672:15672' # Management UI
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - nestjs-todo-network
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 30s
+      retries: 3
+
   es01:
     image: docker.elastic.co/elasticsearch/elasticsearch:9.0.3
     environment:
@@ -99,6 +120,8 @@ volumes:
   data02:
     driver: local
   data03:
+    driver: local
+  rabbitmq_data:
     driver: local
 
 networks:
