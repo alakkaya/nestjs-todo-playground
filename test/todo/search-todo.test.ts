@@ -4,13 +4,13 @@ import {
   createTestTodo,
   generateTestTodoDto,
   sleep,
+  TEST_TIMEOUTS,
 } from '../common';
 import { getAuthTokens } from '../common/auth.helper';
 import * as request from 'supertest';
 import { testConfig } from '../test-config';
 import { ErrorCode } from '../../src/core/error/error-code';
 import { Todo } from 'src/core/interface';
-import { TEST_TIMEOUTS } from 'test/common/constants/test-timeouts.constants';
 
 describe('Todo - Search', () => {
   let accessToken: string;
