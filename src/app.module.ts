@@ -9,6 +9,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { RedisModule } from '@nestjs-modules/ioredis';
 import { Environment } from './core/interface';
 import { TodoModule } from './modules/todo/todo.module';
+import { RabbitmqModule } from './modules/utils/rabbitmq/rabbitmq.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { TodoModule } from './modules/todo/todo.module';
     UserModule,
     AuthModule,
     TodoModule,
+    RabbitmqModule,
   ],
 
   controllers: [],
