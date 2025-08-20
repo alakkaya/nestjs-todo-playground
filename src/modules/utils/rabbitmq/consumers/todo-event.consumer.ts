@@ -28,7 +28,9 @@ export class TodoEventConsumerService implements OnModuleInit {
       this.channel = await this.connection.createChannel();
 
       await this.channel.assertQueue(
-        this.configService.get<string>('RABBITMQ_QUEUE_TODO_EVENTS'),
+        this.configService.get<string>(
+          'RABBITMQ_QUEUE_TODO_ELASTICSEARCH_SYNC',
+        ),
         { durable: true },
       );
     } catch (error) {
@@ -39,7 +41,7 @@ export class TodoEventConsumerService implements OnModuleInit {
 
   private async consume(): Promise<void> {
     this.channel.consume(
-      this.configService.get<string>('RABBITMQ_QUEUE_TODO_EVENTS'),
+      this.configService.get<string>('RABBITMQ_QUEUE_TODO_ELASTICSEARCH_SYNC'),
       async (message) => {
         if (message) {
           try {

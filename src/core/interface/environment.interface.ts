@@ -11,5 +11,5 @@ export interface Environment {
   ELASTICSEARCH_USERNAME: string;
   ELASTICSEARCH_PASSWORD: string;
   RABBITMQ_URL: string;
-  RABBITMQ_QUEUE_TODO_EVENTS: string;
+  RABBITMQ_QUEUE_TODO_ELASTICSEARCH_SYNC: string;
 }
