@@ -13,6 +13,7 @@ import { TodoNotFoundException } from 'src/core/error';
 import { TodoElastic } from 'src/modules/utils/elastic-search/interface';
 import { TodoSearchService } from 'src/modules/utils/elastic-search/services/todo-search.service';
 import { RabbitmqService } from 'src/modules/utils/rabbitmq/services/rabbitmq.service';
+import { TodoEvent } from 'src/modules/utils/rabbitmq/enum/todo-event';
 
 @Injectable()
 export class TodoService {
@@ -43,7 +44,7 @@ export class TodoService {
     };
 
     // Fire-and-forget: User does not wait for Elasticsearch operation
-    this.rabbitmqService.publishTodoEvent('TODO_CREATED', todoElastic);
+    this.rabbitmqService.publishTodoEvent(TodoEvent.TODO_CREATED, todoElastic);
 
     return createdTodo;
   }
@@ -98,7 +99,7 @@ export class TodoService {
     };
 
     // Fire-and-forget
-    this.rabbitmqService.publishTodoEvent('TODO_UPDATED', todoElastic);
+    this.rabbitmqService.publishTodoEvent(TodoEvent.TODO_UPDATED, todoElastic);
 
     return updatedTodo;
   }
@@ -125,7 +126,7 @@ export class TodoService {
       updatedAt: existingTodo.updatedAt,
     };
 
-    this.rabbitmqService.publishTodoEvent('TODO_DELETED', todoElastic);
+    this.rabbitmqService.publishTodoEvent(TodoEvent.TODO_DELETED, todoElastic);
   }
 
   async findById(todoId: string, userId: string): Promise<Todo> {
