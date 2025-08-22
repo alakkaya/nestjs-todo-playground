@@ -19,9 +19,7 @@ export class RabbitmqService {
 
       // Queue'yu oluştur
       await this.channel.assertQueue(
-        this.configService.get<string>(
-          'RABBITMQ_QUEUE_TODO_ELASTICSEARCH_SYNC',
-        ),
+        this.configService.get<string>('RABBITMQ_TODO_ELASTICSEARCH'),
         { durable: true },
       );
     } catch (error) {
@@ -42,7 +40,7 @@ export class RabbitmqService {
     };
 
     this.channel.sendToQueue(
-      this.configService.get<string>('RABBITMQ_QUEUE_TODO_ELASTICSEARCH_SYNC'),
+      this.configService.get<string>('RABBITMQ_TODO_ELASTICSEARCH'),
       Buffer.from(JSON.stringify(message)),
       { persistent: true },
     );
