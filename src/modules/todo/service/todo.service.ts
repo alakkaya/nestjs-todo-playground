@@ -12,12 +12,15 @@ import { Todo } from 'src/core/interface';
 import { TodoNotFoundException } from 'src/core/error';
 import { TodoElastic } from 'src/modules/utils/elastic-search/interface';
 import { TodoSearchService } from 'src/modules/utils/elastic-search/services/todo-search.service';
+import { RabbitmqService } from 'src/modules/utils/rabbitmq/services/rabbitmq.service';
+import { TodoEvent } from 'src/modules/utils/rabbitmq/enum/todo-event';
 
 @Injectable()
 export class TodoService {
   constructor(
     private readonly todoRepository: TodoRepository,
     private readonly todoSearchService: TodoSearchService,
+    private readonly rabbitmqService: RabbitmqService,
   ) {}
 
   async create(todo: CreateTodoDto, userId: string): Promise<CreateTodoAck> {
@@ -26,9 +29,11 @@ export class TodoService {
       userId,
       completed: false, // Default to false when creating a new todo
     };
+
     const createdTodo = await this.todoRepository.create(todoData);
 
-    await this.todoSearchService.insert({
+    // For sending to RabbitMQ
+    const todoElastic: TodoElastic = {
       id: createdTodo.id,
       title: createdTodo.title,
       description: createdTodo.description,
@@ -36,7 +41,10 @@ export class TodoService {
       userId: createdTodo.userId,
       createdAt: createdTodo.createdAt,
       updatedAt: createdTodo.updatedAt,
-    });
+    };
+
+    // Fire-and-forget: User does not wait for Elasticsearch operation
+    this.rabbitmqService.publishTodoEvent(TodoEvent.TODO_CREATED, todoElastic);
 
     return createdTodo;
   }
@@ -77,11 +85,10 @@ export class TodoService {
     if (!existingTodo) {
       throw new TodoNotFoundException();
     }
-
     const updatedTodo = await this.todoRepository.update(todoId, updateTodoDto);
 
-    // Elastic'te güncelle
-    await this.todoSearchService.update({
+    // For sending to RabbitMQ
+    const todoElastic: TodoElastic = {
       id: updatedTodo.id,
       title: updatedTodo.title,
       description: updatedTodo.description,
@@ -89,7 +96,10 @@ export class TodoService {
       userId: updatedTodo.userId,
       createdAt: updatedTodo.createdAt,
       updatedAt: updatedTodo.updatedAt,
-    });
+    };
+
+    // Fire-and-forget
+    this.rabbitmqService.publishTodoEvent(TodoEvent.TODO_UPDATED, todoElastic);
 
     return updatedTodo;
   }
@@ -104,10 +114,19 @@ export class TodoService {
       throw new TodoNotFoundException();
     }
 
-    await Promise.all([
-      this.todoRepository.delete(todoId),
-      this.todoSearchService.delete(todoId),
-    ]);
+    await this.todoRepository.delete(todoId);
+
+    const todoElastic: TodoElastic = {
+      id: existingTodo._id,
+      title: existingTodo.title,
+      description: existingTodo.description,
+      completed: existingTodo.completed,
+      userId: existingTodo.userId,
+      createdAt: existingTodo.createdAt,
+      updatedAt: existingTodo.updatedAt,
+    };
+
+    this.rabbitmqService.publishTodoEvent(TodoEvent.TODO_DELETED, todoElastic);
   }
 
   async findById(todoId: string, userId: string): Promise<Todo> {
