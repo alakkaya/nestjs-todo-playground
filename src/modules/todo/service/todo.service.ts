@@ -7,13 +7,19 @@ import {
   SearchTodoDto,
   UpdateTodoAck,
   UpdateTodoDto,
+  DeleteTodoAck,
+  CancelDeletionAck,
 } from '../dto';
 import { Todo } from 'src/core/interface';
-import { TodoNotFoundException } from 'src/core/error';
+import {
+  TodoNotFoundException,
+  TodoDeletionPendingException,
+} from 'src/core/error';
 import { TodoElastic } from 'src/modules/utils/elastic-search/interface';
 import { TodoSearchService } from 'src/modules/utils/elastic-search/services/todo-search.service';
 import { RabbitmqService } from 'src/modules/utils/rabbitmq/services/rabbitmq.service';
 import { TodoEvent } from 'src/modules/utils/rabbitmq/enum/todo-event';
+import { TodoDeletionJobService } from 'src/modules/utils/bullmq/services/todo-deletion-job.service';
 
 @Injectable()
 export class TodoService {
@@ -21,6 +27,7 @@ export class TodoService {
     private readonly todoRepository: TodoRepository,
     private readonly todoSearchService: TodoSearchService,
     private readonly rabbitmqService: RabbitmqService,
+    private readonly todoDeletionJobService: TodoDeletionJobService,
   ) {}
 
   async create(todo: CreateTodoDto, userId: string): Promise<CreateTodoAck> {
@@ -104,7 +111,19 @@ export class TodoService {
     return updatedTodo;
   }
 
-  async delete(todoId: string, userId: string): Promise<void> {
+  async delete(todoId: string, userId: string): Promise<DeleteTodoAck> {
+    // Check if deletion is already scheduled
+    const isPending = await this.todoDeletionJobService.isPendingDeletion(
+      todoId,
+      userId,
+    );
+    if (isPending) {
+      throw new TodoDeletionPendingException(
+        'Todo deletion is already in progress',
+      );
+    }
+
+    // Check if todo exists
     const existingTodo = await this.todoRepository.findByIdAndUserId(
       todoId,
       userId,
@@ -114,19 +133,34 @@ export class TodoService {
       throw new TodoNotFoundException();
     }
 
-    await this.todoRepository.delete(todoId);
+    // Add deletion to delayed job
+    const jobId = await this.todoDeletionJobService.scheduleDeletion(
+      todoId,
+      userId,
+    );
 
-    const todoElastic: TodoElastic = {
-      id: existingTodo._id,
-      title: existingTodo.title,
-      description: existingTodo.description,
-      completed: existingTodo.completed,
-      userId: existingTodo.userId,
-      createdAt: existingTodo.createdAt,
-      updatedAt: existingTodo.updatedAt,
+    return {
+      message: 'Todo deletion scheduled. You have 4 seconds to cancel.',
+      jobId,
+      remainingTime: 4000,
     };
+  }
 
-    this.rabbitmqService.publishTodoEvent(TodoEvent.TODO_DELETED, todoElastic);
+  async cancelDeletion(
+    todoId: string,
+    userId: string,
+  ): Promise<CancelDeletionAck> {
+    const cancelled = await this.todoDeletionJobService.cancelDeletion(
+      todoId,
+      userId,
+    );
+
+    return {
+      message: cancelled
+        ? 'Todo deletion cancelled successfully.'
+        : 'No pending deletion found or deletion already completed.',
+      success: cancelled,
+    };
   }
 
   async findById(todoId: string, userId: string): Promise<Todo> {
