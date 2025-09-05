@@ -18,6 +18,9 @@ export enum ErrorCode {
   NOT_FOUND = 40400,
   TODO_NOT_FOUND = 40401,
 
+  //409
+  TODO_DELETION_PENDING = 40900,
+
   //429
   RACE_CONDITION = 42900,
 }

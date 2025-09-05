@@ -7,6 +7,7 @@ import { TodoRepository } from './repository/todo.repository';
 import { ElasticSearchModule } from '../utils/elastic-search/elastic-search.module';
 import { TodoSearchService } from '../utils/elastic-search/services/todo-search.service';
 import { RabbitmqModule } from '../utils/rabbitmq/rabbitmq.module';
+import { BullMQModule } from '../utils/bullmq/bullmq.module';
 
 @Global()
 @Module({
@@ -14,9 +15,10 @@ import { RabbitmqModule } from '../utils/rabbitmq/rabbitmq.module';
     MongooseModule.forFeatureAsync([TodoFactory]),
     ElasticSearchModule,
     RabbitmqModule,
+    BullMQModule,
   ],
   controllers: [TodoController],
   providers: [TodoService, TodoRepository, TodoSearchService],
-  exports: [TodoService],
+  exports: [TodoService, TodoRepository], // TodoRepository'yi de export edelim
 })
 export class TodoModule {}
