@@ -9,3 +9,4 @@ export * from './too-many-request.exception';
 export * from './unauthorized.exception';
 export * from './invalid-refresh-token.exception';
 export * from './todo-not-found.exception';
+export * from './todo-deletion-pending.exception';
