@@ -9,6 +9,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import Redis from 'ioredis';
+import { cacheKeys } from 'src/core/cache/constants';
 
 @Injectable()
 export class TodoDeletionJobService {
@@ -26,7 +27,7 @@ export class TodoDeletionJobService {
   }
 
   async scheduleDeletion(todoId: string, userId: string): Promise<string> {
-    const jobKey = this.generateJobKey(todoId, userId);
+    const jobKey = cacheKeys.jobs.todoDeletion(todoId, userId);
 
     // Cancel existing job if any
     await this.cancelExistingJob(jobKey);
@@ -49,7 +50,7 @@ export class TodoDeletionJobService {
   }
 
   async cancelDeletion(todoId: string, userId: string): Promise<boolean> {
-    const jobKey = this.generateJobKey(todoId, userId);
+    const jobKey = cacheKeys.jobs.todoDeletion(todoId, userId);
     const jobId = await this.redis.get(jobKey);
 
     if (jobId) {
@@ -64,7 +65,7 @@ export class TodoDeletionJobService {
   }
 
   async isPendingDeletion(todoId: string, userId: string): Promise<boolean> {
-    const jobKey = this.generateJobKey(todoId, userId);
+    const jobKey = cacheKeys.jobs.todoDeletion(todoId, userId);
     const jobId = await this.redis.get(jobKey);
 
     if (jobId) {
@@ -72,10 +73,6 @@ export class TodoDeletionJobService {
       return job !== null;
     }
     return false;
-  }
-
-  private generateJobKey(todoId: string, userId: string): string {
-    return `delayed-job:todo-deletion:${todoId}:${userId}`;
   }
 
   private async cancelExistingJob(jobKey: string): Promise<void> {
