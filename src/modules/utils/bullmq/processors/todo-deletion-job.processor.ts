@@ -20,34 +20,30 @@ export class TodoDeletionJobProcessor extends WorkerHost {
   async process(job: Job<TodoDeletionJobData>): Promise<void> {
     const { todoId, userId } = job.data;
 
-    try {
-      // Delete todo
-      const deletedTodo = await this.todoRepository.findByIdAndUserId(
-        todoId,
-        userId,
+    // Delete todo
+    const deletedTodo = await this.todoRepository.findByIdAndUserId(
+      todoId,
+      userId,
+    );
+
+    if (deletedTodo) {
+      await this.todoRepository.delete(todoId);
+
+      // Send deletion event to RabbitMQ
+      const todoElastic: TodoElastic = {
+        id: deletedTodo._id,
+        title: deletedTodo.title,
+        description: deletedTodo.description,
+        completed: deletedTodo.completed,
+        userId: deletedTodo.userId,
+        createdAt: deletedTodo.createdAt,
+        updatedAt: deletedTodo.updatedAt,
+      };
+
+      await this.rabbitmqService.publishTodoEvent(
+        TodoEvent.TODO_DELETED,
+        todoElastic,
       );
-
-      if (deletedTodo) {
-        await this.todoRepository.delete(todoId);
-
-        // Send deletion event to RabbitMQ
-        const todoElastic: TodoElastic = {
-          id: deletedTodo._id,
-          title: deletedTodo.title,
-          description: deletedTodo.description,
-          completed: deletedTodo.completed,
-          userId: deletedTodo.userId,
-          createdAt: deletedTodo.createdAt,
-          updatedAt: deletedTodo.updatedAt,
-        };
-
-        await this.rabbitmqService.publishTodoEvent(
-          TodoEvent.TODO_DELETED,
-          todoElastic,
-        );
-      }
-    } catch (error) {
-      throw error;
     }
   }
 }

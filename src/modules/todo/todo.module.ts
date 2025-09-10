@@ -19,6 +19,6 @@ import { BullMQModule } from '../utils/bullmq/bullmq.module';
   ],
   controllers: [TodoController],
   providers: [TodoService, TodoRepository, TodoSearchService],
-  exports: [TodoService, TodoRepository], // TodoRepository'yi de export edelim
+  exports: [TodoService, TodoRepository],
 })
 export class TodoModule {}
