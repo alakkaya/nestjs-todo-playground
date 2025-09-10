@@ -13,4 +13,6 @@ export interface Environment {
   RABBITMQ_URL: string;
   RABBITMQ_TODO_ELASTICSEARCH: string;
   DELAYED_JOB_DEFAULT_DELAY: number;
+  REDLOCK_DEFAULT_TTL: number;
+  REDLOCK_TODO_DELETION_TTL: number;
 }

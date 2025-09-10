@@ -40,6 +40,7 @@
     "dotenv": "16.5.0",
     "ioredis": "5.7.0",
     "mongoose": "8.14.1",
+    "redlock": "5.0.0-beta.2",
     "reflect-metadata": "0.2.2",
     "rxjs": "7.8.2"
   },
@@ -55,6 +56,7 @@
     "@types/express": "5.0.1",
     "@types/jest": "29.5.14",
     "@types/node": "22.15.3",
+    "@types/redlock": "4.0.7",
     "@types/supertest": "6.0.3",
     "eslint": "9.34.0",
     "eslint-config-prettier": "10.1.2",
