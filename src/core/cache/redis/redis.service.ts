@@ -1,4 +1,4 @@
-import { cacheKeys, cacheTTL } from './constants';
+import { cacheKeys, cacheTTL } from '../constants';
 import { Injectable } from '@nestjs/common';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import Redis from 'ioredis';

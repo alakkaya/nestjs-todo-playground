@@ -7,7 +7,7 @@ import { TodoRepository } from '../../todo/repository/todo.repository';
 import { MongooseModule } from '@nestjs/mongoose';
 import { TodoFactory } from '../../todo/model/todo.model';
 import { RabbitmqModule } from '../rabbitmq/rabbitmq.module';
-import { RedisModule } from 'src/core/cache/redis.module';
+import { RedisModule } from 'src/core/cache';
 
 @Module({
   imports: [
