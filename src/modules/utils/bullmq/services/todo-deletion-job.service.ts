@@ -1,7 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
-import { TodoDeletionJobData, BullMQJobOptions } from 'src/core/interface';
+import {
+  TodoDeletionJobData,
+  BullMQJobOptions,
+  JobName,
+} from 'src/core/interface';
 import { ConfigService } from '@nestjs/config';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import Redis from 'ioredis';
@@ -29,7 +33,7 @@ export class TodoDeletionJobService {
 
     // Create a new job
     const job = await this.todoDeletionQueue.add(
-      'delete-todo',
+      JobName.DELETE_TODO,
       { todoId, userId } as TodoDeletionJobData,
       {
         delay: this.deletionDelay,
