@@ -4,7 +4,7 @@ import { getAuthTokens } from '../common/auth.helper';
 import * as request from 'supertest';
 import { testConfig } from '../test-config';
 import { ErrorCode } from '../../src/core/error/error-code';
-import { TodoMongoModel } from '../../test/common';
+import { sleep, TodoMongoModel } from '../../test/common';
 
 describe('Todo - Delete', () => {
   let accessToken: string;
@@ -33,17 +33,25 @@ describe('Todo - Delete', () => {
       .exec();
     expect(todoBeforeDeletion).toBeTruthy();
 
-    // Delete the todo
+    // Delete the todo (should schedule deletion job)
     const delRes = await request(testConfig.baseUri)
       .delete(`/todo/${todoId}`)
       .set('Authorization', `Bearer ${accessToken}`);
     expect(delRes.status).toBe(200);
+    expect(delRes.body.result.remainingTime).toBe(4000);
+    expect(delRes.body.result.jobId).toBeDefined();
 
-    // Verify todo is actually deleted from database
-    const todoAfterDeletion = await TodoMongoModel.findById(todoId)
+    // Verify todo still exists immediately after delete request (delayed deletion)
+    const todoAfterDeleteRequest = await TodoMongoModel.findById(todoId)
       .lean()
       .exec();
-    expect(todoAfterDeletion).toBeNull();
+    expect(todoAfterDeleteRequest).toBeTruthy();
+
+    await sleep(5000); // more than the deletion delay (4s)
+
+    // Verify todo is actually deleted from database after delay
+    const todoAfterDelay = await TodoMongoModel.findById(todoId).lean().exec();
+    expect(todoAfterDelay).toBeNull();
 
     // Verify database count decreased
     const todoCount = await TodoMongoModel.countDocuments({}).exec();
@@ -55,6 +63,92 @@ describe('Todo - Delete', () => {
       .set('Authorization', `Bearer ${accessToken}`);
     expect(delRes2.status).toBe(404);
     expect(delRes2.body.meta.errorCode).toBe(ErrorCode.TODO_NOT_FOUND);
+  });
+
+  it('should handle concurrent delete requests (race condition protection)', async () => {
+    // Create a todo for race condition testing
+    const todoRes = await request(testConfig.baseUri)
+      .post('/todo')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({ title: 'Race Test', description: 'Test' });
+    const todoId = todoRes.body.result.id;
+
+    // Send 10 concurrent delete requests
+    const deletePromises = Array.from({ length: 10 }, () =>
+      request(testConfig.baseUri)
+        .delete(`/todo/${todoId}`)
+        .set('Authorization', `Bearer ${accessToken}`),
+    );
+
+    // Promise.allSettled -> Wait for all to complete regardless of success/failure
+    const results = await Promise.allSettled(deletePromises);
+    const responses = results
+      .filter((r) => r.status === 'fulfilled')
+      .map((r) => r.value);
+
+    // Only 1 should succeed (200), others should get race condition (409)
+    const successful = responses.filter((r) => r.status === 200);
+    const raceConditions = responses.filter((r) => r.status === 409);
+
+    expect(successful).toHaveLength(1);
+    expect(successful[0].body.result.jobId).toBeDefined();
+    expect(successful[0].body.result.remainingTime).toBe(4000);
+  });
+
+  it('should return 409 if deletion is already pending', async () => {
+    // Create a todo
+    const todoRes = await request(testConfig.baseUri)
+      .post('/todo')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({ title: 'Pending Test', description: 'Test' });
+    const todoId = todoRes.body.result.id;
+
+    // First delete request - should succeed
+    const firstDelete = await request(testConfig.baseUri)
+      .delete(`/todo/${todoId}`)
+      .set('Authorization', `Bearer ${accessToken}`);
+    expect(firstDelete.status).toBe(200);
+
+    // Second delete request - should fail with 409 because deletion is pending
+    const secondDelete = await request(testConfig.baseUri)
+      .delete(`/todo/${todoId}`)
+      .set('Authorization', `Bearer ${accessToken}`);
+    expect(secondDelete.status).toBe(409);
+    expect(secondDelete.body.meta.errorCode).toBe(
+      ErrorCode.TODO_DELETION_PENDING,
+    );
+  });
+
+  it('should support cancellation of pending deletion', async () => {
+    // Create a todo
+    const todoRes = await request(testConfig.baseUri)
+      .post('/todo')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({ title: 'Cancel Test', description: 'Test' });
+    const todoId = todoRes.body.result.id;
+
+    // Schedule deletion
+    const deleteRes = await request(testConfig.baseUri)
+      .delete(`/todo/${todoId}`)
+      .set('Authorization', `Bearer ${accessToken}`);
+    expect(deleteRes.status).toBe(200);
+
+    // Cancel the deletion
+    const cancelRes = await request(testConfig.baseUri)
+      .post(`/todo/${todoId}/cancel-deletion`)
+      .set('Authorization', `Bearer ${accessToken}`);
+    expect(cancelRes.status).toBe(201);
+
+    // Todo should still exist even after delay
+    await sleep(5000); // Wait longer than deletion delay
+    const todoAfterCancel = await TodoMongoModel.findById(todoId).lean().exec();
+    expect(todoAfterCancel).toBeTruthy();
+
+    // Should be able to delete again
+    const secondDeleteRes = await request(testConfig.baseUri)
+      .delete(`/todo/${todoId}`)
+      .set('Authorization', `Bearer ${accessToken}`);
+    expect(secondDeleteRes.status).toBe(200);
   });
 
   it('should return 404 for non-existent todo', async () => {

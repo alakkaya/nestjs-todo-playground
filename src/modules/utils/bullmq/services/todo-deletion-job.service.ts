@@ -20,10 +20,7 @@ export class TodoDeletionJobService {
     @InjectRedis() private readonly redis: Redis,
     private readonly configService: ConfigService,
   ) {
-    this.deletionDelay = this.configService.get(
-      'DELAYED_JOB_DEFAULT_DELAY',
-      4000,
-    );
+    this.deletionDelay = this.configService.get('DELAYED_JOB_DEFAULT_DELAY');
   }
 
   async scheduleDeletion(todoId: string, userId: string): Promise<string> {
