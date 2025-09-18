@@ -10,6 +10,7 @@ import { RedisModule } from '@nestjs-modules/ioredis';
 import { Environment } from './core/interface';
 import { TodoModule } from './modules/todo/todo.module';
 import { RabbitmqModule } from './modules/utils/rabbitmq/rabbitmq.module';
+import { LockModule } from './core/cache/lock/lock.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { RabbitmqModule } from './modules/utils/rabbitmq/rabbitmq.module';
     AuthModule,
     TodoModule,
     RabbitmqModule,
+    LockModule,
   ],
 
   controllers: [],

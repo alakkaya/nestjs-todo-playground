@@ -19,6 +19,8 @@ import {
   UpdateTodoAck,
   SearchTodoAck,
   SearchTodoDto,
+  DeleteTodoAck,
+  CancelDeletionAck,
 } from '../dto';
 import { AuthGuard } from 'src/core/guard/auth.guard';
 import { ApiException, ApiResponseSchema, ReqUser } from 'src/core/decorator';
@@ -29,7 +31,10 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { TodoNotFoundException } from 'src/core/error';
+import {
+  TodoNotFoundException,
+  TodoDeletionPendingException,
+} from 'src/core/error';
 
 @ApiTags('Todo')
 @Controller('todo')
@@ -83,17 +88,33 @@ export class TodoController {
   }
 
   @Delete(':todoId')
-  @ApiOperation({ summary: 'Delete a todo' })
+  @ApiOperation({ summary: 'Schedule todo deletion' })
   @ApiException(TodoNotFoundException)
+  @ApiException(TodoDeletionPendingException)
   @ApiResponseSchema({
     status: 200,
-    description: 'Todo deleted successfully',
+    description: 'Todo deletion scheduled successfully',
+    model: DeleteTodoAck,
   })
   async delete(
     @Param('todoId') todoId: string,
     @ReqUser() user: User,
-  ): Promise<void> {
+  ): Promise<DeleteTodoAck> {
     return this.todoService.delete(todoId, user._id);
+  }
+
+  @Post(':todoId/cancel-deletion')
+  @ApiOperation({ summary: 'Cancel todo deletion' })
+  @ApiResponseSchema({
+    status: 200,
+    description: 'Todo deletion cancellation result',
+    model: CancelDeletionAck,
+  })
+  async cancelDeletion(
+    @Param('todoId') todoId: string,
+    @ReqUser() user: User,
+  ): Promise<CancelDeletionAck> {
+    return this.todoService.cancelDeletion(todoId, user._id);
   }
 
   @Get('search')

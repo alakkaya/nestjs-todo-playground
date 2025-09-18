@@ -9,7 +9,7 @@ import {
 import * as bcrypt from 'bcryptjs';
 import { ConfigService } from '@nestjs/config';
 import { User } from 'src/core/interface/mongo-model';
-import { RedisService } from 'src/core/cache/redis.service';
+import { RedisService } from 'src/core/cache/redis/redis.service';
 import { Environment } from 'src/core/interface';
 
 @Injectable()
