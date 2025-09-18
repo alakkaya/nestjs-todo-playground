@@ -91,6 +91,7 @@ describe('Todo - Delete', () => {
     const raceConditions = responses.filter((r) => r.status === 409);
 
     expect(successful).toHaveLength(1);
+    expect(raceConditions).toHaveLength(9);
     expect(successful[0].body.result.jobId).toBeDefined();
     expect(successful[0].body.result.remainingTime).toBe(4000);
   });
