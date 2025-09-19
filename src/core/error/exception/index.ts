@@ -10,3 +10,5 @@ export * from './unauthorized.exception';
 export * from './invalid-refresh-token.exception';
 export * from './todo-not-found.exception';
 export * from './todo-deletion-pending.exception';
+export * from './mcp-tool-not-found.exception';
+export * from './mcp-category-not-supported.exception';
