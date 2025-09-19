@@ -11,6 +11,7 @@ import { Environment } from './core/interface';
 import { TodoModule } from './modules/todo/todo.module';
 import { RabbitmqModule } from './modules/utils/rabbitmq/rabbitmq.module';
 import { LockModule } from './core/cache/lock/lock.module';
+import { McpModule } from './modules/mcp/mcp.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { LockModule } from './core/cache/lock/lock.module';
     TodoModule,
     RabbitmqModule,
     LockModule,
+    McpModule,
   ],
 
   controllers: [],
