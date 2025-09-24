@@ -29,6 +29,7 @@ services:
     depends_on:
       - mongo
       - redis-db
+      - todo-playground-server
     env_file:
       - ../.env
     networks:

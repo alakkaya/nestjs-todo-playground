@@ -26,7 +26,14 @@ export const McpTool = {
   },
   TODO_DELETE: {
     name: 'todo_delete',
-    description: 'Delete a todo item',
+    description:
+      'Schedule todo for deletion (delayed 4 seconds) - returns pending status, user can cancel within this time',
+    category: 'todo' as const,
+  },
+  TODO_CANCEL_DELETION: {
+    name: 'todo_cancel_deletion',
+    description:
+      'Cancel pending todo deletion and restore the todo (only works within 4 seconds of deletion request)',
     category: 'todo' as const,
   },
 } as const;
