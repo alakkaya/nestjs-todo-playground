@@ -54,7 +54,7 @@ export class TodoController {
     @Body() createTodoDto: CreateTodoDto,
     @ReqUser() user: User,
   ): Promise<CreateTodoAck> {
-    return this.todoService.create(createTodoDto, user._id);
+    return this.todoService.create({ ...createTodoDto, userId: user._id });
   }
 
   @Get()
@@ -100,7 +100,7 @@ export class TodoController {
     @Param('todoId') todoId: string,
     @ReqUser() user: User,
   ): Promise<DeleteTodoAck> {
-    return this.todoService.delete(todoId, user._id);
+    return this.todoService.delete({ todoId, userId: user._id });
   }
 
   @Post(':todoId/cancel-deletion')
@@ -114,7 +114,7 @@ export class TodoController {
     @Param('todoId') todoId: string,
     @ReqUser() user: User,
   ): Promise<CancelDeletionAck> {
-    return this.todoService.cancelDeletion(todoId, user._id);
+    return this.todoService.cancelDeletion({ todoId, userId: user._id });
   }
 
   @Get('search')
