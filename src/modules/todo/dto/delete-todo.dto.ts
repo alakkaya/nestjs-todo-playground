@@ -1,22 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString } from 'class-validator';
 
-export class DeleteTodoDto {
-  @IsString()
-  @ApiProperty({
-    description: 'Todo ID to delete',
-    example: '507f1f77bcf86cd799439012',
-  })
-  todoId: string;
-
-  @IsString()
-  @ApiProperty({
-    description: 'User ID',
-    example: '507f1f77bcf86cd799439011',
-  })
-  userId: string;
-}
-
 export class DeleteTodoAck {
   @ApiProperty({
     description: 'Success message about deletion scheduling',
@@ -35,22 +19,6 @@ export class DeleteTodoAck {
     example: 4000,
   })
   remainingTime: number;
-}
-
-export class CancelDeletionDto {
-  @IsString()
-  @ApiProperty({
-    description: 'Todo ID to cancel deletion',
-    example: '507f1f77bcf86cd799439012',
-  })
-  todoId: string;
-
-  @IsString()
-  @ApiProperty({
-    description: 'User ID',
-    example: '507f1f77bcf86cd799439011',
-  })
-  userId: string;
 }
 
 export class CancelDeletionAck {

@@ -9,8 +9,6 @@ import {
   UpdateTodoDto,
   DeleteTodoAck,
   CancelDeletionAck,
-  DeleteTodoDto,
-  CancelDeletionDto,
 } from '../dto';
 import { Todo } from 'src/core/interface';
 import {
@@ -44,9 +42,10 @@ export class TodoService {
     );
   }
 
-  async create(todo: CreateTodoDto): Promise<CreateTodoAck> {
+  async create(todo: CreateTodoDto, userId: string): Promise<CreateTodoAck> {
     const todoData = {
       ...todo,
+      userId,
       completed: false, // Default to false when creating a new todo
     };
 
@@ -124,16 +123,16 @@ export class TodoService {
     return updatedTodo;
   }
 
-  async delete(deleteTodoDto: DeleteTodoDto): Promise<DeleteTodoAck> {
-    const lockKey = cacheKeys.locks.todoDeletion(deleteTodoDto.todoId);
+  async delete(todoId: string, userId: string): Promise<DeleteTodoAck> {
+    const lockKey = cacheKeys.locks.todoDeletion(todoId);
 
     return await this.redlockService.withLock(
       lockKey,
       async () => {
         // 1. Pending deletion kontrolü
         const isPending = await this.todoDeletionJobService.isPendingDeletion(
-          deleteTodoDto.todoId,
-          deleteTodoDto.userId,
+          todoId,
+          userId,
         );
         if (isPending) {
           throw new TodoDeletionPendingException();
@@ -141,8 +140,8 @@ export class TodoService {
 
         // 2. Check if todo exists
         const existingTodo = await this.todoRepository.findByIdAndUserId(
-          deleteTodoDto.todoId,
-          deleteTodoDto.userId,
+          todoId,
+          userId,
         );
         if (!existingTodo) {
           throw new TodoNotFoundException();
@@ -150,8 +149,8 @@ export class TodoService {
 
         // 3. Schedule delayed job
         const jobId = await this.todoDeletionJobService.scheduleDeletion(
-          deleteTodoDto.todoId,
-          deleteTodoDto.userId,
+          todoId,
+          userId,
         );
 
         return {
@@ -165,11 +164,12 @@ export class TodoService {
   }
 
   async cancelDeletion(
-    cancelDeletionDto: CancelDeletionDto,
+    todoId: string,
+    userId: string,
   ): Promise<CancelDeletionAck> {
     const cancelled = await this.todoDeletionJobService.cancelDeletion(
-      cancelDeletionDto.todoId,
-      cancelDeletionDto.userId,
+      todoId,
+      userId,
     );
 
     return {

@@ -15,10 +15,6 @@ export class CreateTodoDto {
   @IsString()
   @ApiProperty()
   description: string;
-
-  @IsString()
-  @ApiProperty()
-  userId: string;
 }
 
 export class CreateTodoAck {
