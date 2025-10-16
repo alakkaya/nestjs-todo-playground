@@ -6,7 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "mcp:dev": "ts-node -r tsconfig-paths/register src/mcp-server.ts",
+    "mcp:dev": "ts-node --transpile-only -r tsconfig-paths/register src/mcp-server.ts",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
@@ -39,7 +39,6 @@
     "bullmq": "5.58.5",
     "class-transformer": "0.5.1",
     "class-validator": "0.14.1",
-    "class-validator-jsonschema": "5.1.0",
     "dotenv": "16.5.0",
     "ioredis": "5.7.0",
     "mongoose": "8.14.1",

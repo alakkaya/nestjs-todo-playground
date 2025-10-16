@@ -1,95 +1,105 @@
 import { McpTool } from 'src/core/interface';
 import { McpToolNotFoundException } from 'src/core/error/exception/mcp-tool-not-found.exception';
-import { validationMetadatasToSchemas } from 'class-validator-jsonschema';
 import { formatMcpToolResponse } from 'src/core/helper';
 import { TodoService } from 'src/modules/todo/service';
-import {
-  McpCreateTodoDto,
-  McpGetTodoDto,
-  McpUpdateTodoDto,
-  McpDeleteTodoDto,
-  McpCancelDeletionDto,
-} from '../dto';
+import { TodoSchemas } from '../schemas';
 
 export class TodoTools {
   constructor(private readonly todoService: TodoService) {}
 
   getToolDefinitions() {
-    const schemas = validationMetadatasToSchemas();
-
     return [
       {
         name: McpTool.TODO_CREATE.name,
         description: McpTool.TODO_CREATE.description,
-        inputSchema: schemas.McpCreateTodoDto,
+        inputSchema: TodoSchemas.create,
       },
       {
         name: McpTool.TODO_GET.name,
         description: McpTool.TODO_GET.description,
-        inputSchema: schemas.McpGetTodoDto,
+        inputSchema: TodoSchemas.get,
       },
       {
         name: McpTool.TODO_UPDATE.name,
         description: McpTool.TODO_UPDATE.description,
-        inputSchema: schemas.McpUpdateTodoDto,
+        inputSchema: TodoSchemas.update,
       },
       {
         name: McpTool.TODO_DELETE.name,
         description: McpTool.TODO_DELETE.description,
-        inputSchema: schemas.McpDeleteTodoDto,
+        inputSchema: TodoSchemas.delete,
       },
       {
         name: McpTool.TODO_CANCEL_DELETION.name,
         description: McpTool.TODO_CANCEL_DELETION.description,
-        inputSchema: schemas.McpCancelDeletionDto,
+        inputSchema: TodoSchemas.cancelDeletion,
       },
-    ];
+    ] as const;
   }
 
   async handleToolCall(toolName: string, args: any) {
     switch (toolName) {
       case McpTool.TODO_CREATE.name:
-        return await this.create(args as McpCreateTodoDto);
+        return await this.create(args);
       case McpTool.TODO_GET.name:
-        return await this.get(args as McpGetTodoDto);
+        return await this.get(args);
       case McpTool.TODO_UPDATE.name:
-        return await this.update(args as McpUpdateTodoDto);
+        return await this.update(args);
       case McpTool.TODO_DELETE.name:
-        return await this.delete(args as McpDeleteTodoDto);
+        return await this.delete(args);
       case McpTool.TODO_CANCEL_DELETION.name:
-        return await this.cancelDeletion(args as McpCancelDeletionDto);
+        return await this.cancelDeletion(args);
       default:
         throw new McpToolNotFoundException(toolName);
     }
   }
 
-  private async create(args: McpCreateTodoDto) {
-    const { userId, ...createTodoDto } = args;
-    const result = await this.todoService.create(createTodoDto, userId);
+  private async create(args: any) {
+    const createTodoDto = {
+      title: args.title,
+      description: args.description,
+    };
+
+    const result = await this.todoService.create(createTodoDto, args.userId);
     return formatMcpToolResponse('Todo created successfully', result);
   }
 
-  private async get(args: McpGetTodoDto) {
-    const { userId, ...getTodoDto } = args;
-    const result = await this.todoService.findByUserId(userId, getTodoDto);
+  private async get(args: any) {
+    const getTodoDto = {
+      page: args.page,
+      limit: args.limit,
+      completed: args.completed,
+    };
+
+    const result = await this.todoService.findByUserId(args.userId, getTodoDto);
     return formatMcpToolResponse('Todos retrieved successfully', result);
   }
 
-  private async update(args: McpUpdateTodoDto) {
-    const { todoId, userId, ...updateTodoDto } = args;
-    const result = await this.todoService.update(todoId, userId, updateTodoDto);
+  private async update(args: any) {
+    const updateTodoDto = {
+      title: args.title,
+      description: args.description,
+      completed: args.completed,
+    };
+
+    const result = await this.todoService.update(
+      args.todoId,
+      args.userId,
+      updateTodoDto,
+    );
     return formatMcpToolResponse('Todo updated successfully', result);
   }
 
-  private async delete(args: McpDeleteTodoDto) {
-    const { todoId, userId } = args;
-    const result = await this.todoService.delete(todoId, userId);
+  private async delete(args: any) {
+    const result = await this.todoService.delete(args.todoId, args.userId);
     return formatMcpToolResponse('Todo deletion scheduled', result);
   }
 
-  private async cancelDeletion(args: McpCancelDeletionDto) {
-    const { todoId, userId } = args;
-    const result = await this.todoService.cancelDeletion(todoId, userId);
+  private async cancelDeletion(args: any) {
+    const result = await this.todoService.cancelDeletion(
+      args.todoId,
+      args.userId,
+    );
     return formatMcpToolResponse('Todo deletion cancelled', result);
   }
 }

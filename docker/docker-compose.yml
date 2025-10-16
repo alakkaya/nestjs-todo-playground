@@ -23,7 +23,7 @@ services:
     build:
       context: ..
       dockerfile: ./docker/Dockerfile
-    command: ['npm', 'run', 'mcp:dev']
+    command: npm run mcp:dev
     volumes:
       - ../src:/usr/src/app/src
     depends_on:
