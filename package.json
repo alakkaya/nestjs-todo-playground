@@ -6,6 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
+    "mcp:dev": "ts-node --transpile-only -r tsconfig-paths/register src/mcp-server.ts",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
@@ -21,6 +22,7 @@
   },
   "dependencies": {
     "@elastic/elasticsearch": "9.0.3",
+    "@modelcontextprotocol/sdk": "1.18.1",
     "@nestjs-modules/ioredis": "2.0.2",
     "@nestjs/bullmq": "11.0.3",
     "@nestjs/common": "11.1.0",

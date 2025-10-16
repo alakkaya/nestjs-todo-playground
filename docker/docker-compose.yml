@@ -19,6 +19,22 @@ services:
     networks:
       - nestjs-todo-network
 
+  mcp-server:
+    build:
+      context: ..
+      dockerfile: ./docker/Dockerfile
+    command: npm run mcp:dev
+    volumes:
+      - ../src:/usr/src/app/src
+    depends_on:
+      - mongo
+      - redis-db
+      - todo-playground-server
+    env_file:
+      - ../.env
+    networks:
+      - nestjs-todo-network
+
   mongo:
     image: mongo
     container_name: todo-playground-mongo
